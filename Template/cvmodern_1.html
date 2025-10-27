@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CV - {{ nom }} {{ prenom }}</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+    .cv-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 25px;
+    }
+    .section-title {
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+    .info-item, .exp-item, .formation-item, .project-item, .lang-item {
+      margin-bottom: 8px;
+    }
+    .skills {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .skill {
+      background: #3498db;
+      color: white;
+      border-radius: 20px;
+      padding: 5px 15px;
+      margin: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="cv-container">
+    <div class="header">
+      <h1>{{ nom }} {{ prenom }}</h1>
+      <p>{{ poste }}</p>
+      <p>{{ email }} | {{ telephone }} | {{ nationalite }}</p>
+      <p><a href="{{ lien }}">Lien</a></p>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Profil</h2>
+      <p>{{ description }}</p>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Expériences professionnelles</h2>
+      {% for exp in experiences %}
+        <div class="exp-item">
+          <strong>{{ exp.Poste }}</strong> - {{ exp.Entreprise }} ({{ exp.Start_date }} - {{ exp.End_date }})
+          <p>{{ exp.Description }}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Formations</h2>
+      {% for form in formations %}
+        <div class="formation-item">
+          <strong>{{ form.Nom_diplome }}</strong> - {{ form.Etablissement }} ({{ form.Start_date }} - {{ form.End_date }})
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Compétences</h2>
+      <div class="skills">
+        {% for comp in competences %}
+          <div class="skill">{{ comp }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Projets</h2>
+      {% for proj in projets %}
+        <div class="project-item">
+          <strong>{{ proj.Nom_projet }}</strong> ({{ proj.Start_date }} - {{ proj.End_date }})
+          <p>{{ proj.Description }}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Langues</h2>
+      {% for lang in langues %}
+        <div class="lang-item">
+          {{ lang.Nom }} - Niveau : {{ lang.Niveau }}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>
