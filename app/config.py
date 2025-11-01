@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
 # Crée une instance globale
 settings = Settings(
-    MONGODB_URI=os.getenv("MONGODB_URI", "mongodb://localhost:27017"),
-    DB_NAME=os.getenv("DB_NAME", "kauza_cv_db")
+    
 )
+# MONGODB_URI=os.getenv("MONGODB_URI", "mongodb://localhost:27017"),
+    # DB_NAME=os.getenv("DB_NAME", "kauza_cv_db")
