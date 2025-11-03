@@ -12,6 +12,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 90
 
 # Hash et vérification du mot de passe
 def hash_password(password: str) -> str:
+    if len(password) > 72:
+        password = password[:72]
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

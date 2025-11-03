@@ -20,11 +20,11 @@ router = APIRouter(
 
 
 #creer un utilisateur
-@router.post("",summary="creer un utilisateur")
+@router.post("", summary="Créer un utilisateur")
 async def create_user(user: Utilisateur):
-    user_dict = user.dict()
+    user_dict = user.dict()  
     new_user = await Create_utilisateur(user_dict)
-    return {"message": "Utilisateur créé avec succès", "utilisateur": new_user}
+    return {"message": "Utilisateur créé avec succès","utilisateur":new_user}
 
 
 # lister utilisateur

@@ -5,7 +5,7 @@ from fastapi import HTTPException,UploadFile
 from datetime import datetime ,date
 import io
 import re
-from pdfplumber import PDF
+# from pdfplumber import PDF
 
 
 def cv_helper(cv) -> dict:
@@ -104,7 +104,7 @@ async def get_cvs_by_user(user_id: str) -> list:
 #     pdf_bytes = await file.read()
 #     pdf_stream = io.BytesIO(pdf_bytes)
 
-#     # Extraire texte brut avec pdfplumber
+    # Extraire texte brut avec pdfplumber
 #     try:
 #         with PDF(pdf_stream) as pdf:
 #             text = "\n".join(page.extract_text() or "" for page in pdf.pages)

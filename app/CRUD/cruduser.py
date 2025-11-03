@@ -1,6 +1,7 @@
 from app.models.User import Utilisateur 
 from app.database import utilisateur_collection
 from bson import ObjectId,errors
+from app.auth.utils import hash_password
 from fastapi import HTTPException
 
 def utilisateur_helper(utilisateur) -> dict:
@@ -12,12 +13,14 @@ def utilisateur_helper(utilisateur) -> dict:
         "ispremium": utilisateur.get("ispremium", False)  
     }
 
-# Créer un nouvel utilisateur
 async def Create_utilisateur(utilisateur_data: dict) -> dict:
     if utilisateur_data.get("role") == "admin":
         utilisateur_data["ispremium"] = False
-    utilisateur = await utilisateur_collection.insert_one(utilisateur_data)
-    new_utilisateur = await utilisateur_collection.find_one({"_id": utilisateur.inserted_id})
+
+    if "password" in utilisateur_data:
+        utilisateur_data["password"] = hash_password(utilisateur_data["password"])
+    result = await utilisateur_collection.insert_one(utilisateur_data)
+    new_utilisateur = await utilisateur_collection.find_one({"_id": result.inserted_id})
     return utilisateur_helper(new_utilisateur)
 
 
