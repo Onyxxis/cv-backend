@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, UploadFile
 from typing import List, Optional
-from app.CRUD.crudcv import create_cv, get_all_cvs, get_cv_by_id, update_cv, delete_cv, get_cvs_by_user
+from app.CRUD.crudcv import create_cv, get_all_cvs, get_completed_cvs_by_user, get_cv_by_id, get_cv_process_by_user, get_in_progress_cvs_by_user, update_cv, delete_cv, get_cvs_by_user,get_last_cv_by_user
 from app.models.cv import CV
 
 router = APIRouter(
@@ -79,7 +79,34 @@ async def get_cvs_by_user_route(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# obtenir le dernier cv d'un utilisateur 
+@router.get("/users/{user_id}/cv/last", response_model=dict)
+async def get_last_cv(user_id: str):
+    return await get_last_cv_by_user(user_id)
 
+
+@router.get("/user/{user_id}/completed")
+async def get_completed_cvs(user_id: str):
+    return {
+        "status": "success",
+        "cvs": await get_completed_cvs_by_user(user_id)
+    }
+
+
+@router.get("/user/{user_id}/in-progress")
+async def get_in_progress_cvs(user_id: str):
+    return {
+        "status": "success",
+        "cvs": await get_in_progress_cvs_by_user(user_id)
+    }
+
+
+
+@router.get("/cv/in-progress")
+async def get_cv_stats(user_id: str):
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+    return await get_cv_process_by_user(user_id)
 
 # Extraire les informations d'un CV à partir d'un fichier PDF
 # @router.post("/upload-cv", summary="Extraire les informations d'un CV à partir d'un")

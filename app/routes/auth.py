@@ -33,20 +33,15 @@ logger = logging.getLogger("uvicorn.error")
 @router.post("/login", response_model=Token)
 async def login(user: UserLogin):
     try:
-        # Cherche l'utilisateur
         db_user = await utilisateur_collection.find_one({"email": user.email})
         if not db_user:
             raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
-
-        # Vérifie le mot de passe
         try:
             if not verify_password(user.password, db_user["password"]):
                 raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
         except Exception as e:
             logger.error(f"Erreur de vérification mot de passe pour {user.email}: {e}")
             raise HTTPException(status_code=500, detail="Erreur interne lors de la vérification du mot de passe")
-
-        # Prépare les données du token
         token_data = {
             "user_id": str(db_user["_id"]),
             "username": db_user.get("username", ""),
@@ -54,17 +49,12 @@ async def login(user: UserLogin):
             "role": str(db_user.get("role", "user")),
             "ispremium": bool(db_user.get("ispremium", False))
         }
-
-
-        # Crée le JWT
         try:
             access_token = create_access_token(token_data)
         except Exception as e:
             logger.error(f"Erreur création token JWT pour {user.email}: {e}")
             raise HTTPException(status_code=500, detail="Erreur interne lors de la création du token")
-
         return {"access_token": access_token, "token_type": "bearer"}
-
     except HTTPException as he:
         raise he
     except Exception as e:

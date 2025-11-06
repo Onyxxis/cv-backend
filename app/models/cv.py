@@ -13,7 +13,8 @@ class PersonalInfo(BaseModel):
     nationality: Optional[str] = None
     job_title: Optional[str] = None
     description: Optional[str] = None
-    link: Optional[str] = None   
+    link: Optional[str] = None  
+    
 
 # Experience
 class Experience(BaseModel):
@@ -65,6 +66,7 @@ class CV(BaseModel):
     projects: List[Project] = []
     languages: List[Language] = []
     certifications: List[Certification] = []
-
+    is_completed: bool = False   
+    completion_percentage: int = 0 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

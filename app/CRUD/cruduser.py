@@ -13,6 +13,7 @@ def utilisateur_helper(utilisateur) -> dict:
         "ispremium": utilisateur.get("ispremium", False)  
     }
 
+
 async def Create_utilisateur(utilisateur_data: dict) -> dict:
     if utilisateur_data.get("role") == "admin":
         utilisateur_data["ispremium"] = False

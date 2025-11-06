@@ -22,17 +22,54 @@ def cv_helper(cv) -> dict:
         "languages": cv.get("languages", []),
         "certifications": cv.get("certifications", []),
         "created_at": cv["created_at"],
-        "updated_at": cv["updated_at"]
+        "updated_at": cv["updated_at"],
+        "completion_percentage": cv.get("completion_percentage", 0),    
+        "is_completed": cv.get("is_completed", False),  
     }
+
+def calculate_completion(cv_data):
+    sections = {
+        "personal_info": 20,
+        "experiences": 20 if len(cv_data.get("experiences", [])) > 0 else 0,
+        "education": 15 if len(cv_data.get("education", [])) > 0 else 0,
+        "skills": 15 if len(cv_data.get("skills", [])) > 0 else 0,
+        "projects": 10 if len(cv_data.get("projects", [])) > 0 else 0,
+        "languages": 10 if len(cv_data.get("languages", [])) > 0 else 0,
+        "certifications": 10 if len(cv_data.get("certifications", [])) > 0 else 0,
+    }
+
+    total = 0
+
+    if cv_data.get("personal_info"):
+        if cv_data["personal_info"].get("first_name") and cv_data["personal_info"].get("last_name"):
+            total += sections["personal_info"]
+
+    total += sections["experiences"]
+    total += sections["education"]
+    total += sections["skills"]
+    total += sections["projects"]
+    total += sections["languages"]
+    total += sections["certifications"]
+
+    return min(total, 100)
+
 
 
 # Create CV
 async def create_cv(cv_data: dict) -> dict:
+    from datetime import datetime
+
     cv_data["created_at"] = datetime.utcnow()
     cv_data["updated_at"] = datetime.utcnow()
+    # ✅ Calcul du pourcentage de complétion lors de la création
+    completion = calculate_completion(cv_data)
+    cv_data["completion_percentage"] = completion
+    cv_data["is_completed"] = (completion == 100)
     result = await cv_collection.insert_one(cv_data)
     new_cv = await cv_collection.find_one({"_id": result.inserted_id})
+
     return cv_helper(new_cv)
+
 
 
 # Get all CVs
@@ -57,18 +94,32 @@ async def get_cv_by_id(cv_id: str) -> dict:
 
 # Update CV
 async def update_cv(cv_id: str, data: dict) -> dict:
+    from datetime import datetime
     try:
         obj_id = ObjectId(cv_id)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid CV ID")
+
     if not data:
         raise HTTPException(status_code=400, detail="No fields to update")
-    data["updated_at"] = datetime.utcnow()
-    result = await cv_collection.update_one({"_id": obj_id}, {"$set": data})
-    if result.matched_count == 0:
+
+    existing_cv = await cv_collection.find_one({"_id": obj_id})
+    if not existing_cv:
         raise HTTPException(status_code=404, detail="CV not found")
+
+    updated_cv_data = {**existing_cv, **data}
+    updated_cv_data["updated_at"] = datetime.utcnow()
+
+    completion = calculate_completion(updated_cv_data)
+    updated_cv_data["completion_percentage"] = completion
+    updated_cv_data["is_completed"] = (completion == 100)
+    await cv_collection.update_one(
+        {"_id": obj_id},
+        {"$set": updated_cv_data}
+    )
     updated_cv = await cv_collection.find_one({"_id": obj_id})
     return cv_helper(updated_cv)
+
 
 
 
@@ -93,7 +144,41 @@ async def get_cvs_by_user(user_id: str) -> list:
     return cvs
 
 
+# Get the last created CV of a user
+async def get_last_cv_by_user(user_id: str) -> dict:
+    cv = await cv_collection.find_one(
+        {"user_id": user_id},
+        sort=[("created_at", -1)]
+    )
+    if not cv:
+        raise HTTPException(status_code=404, detail="No CV found for this user")
+    return cv_helper(cv)
 
+
+
+async def get_completed_cvs_by_user(user_id: str) -> list:
+    cvs = []
+    async for cv in cv_collection.find({"user_id": user_id, "is_completed": True}):
+        cvs.append(cv_helper(cv))
+    return cvs
+
+
+async def get_in_progress_cvs_by_user(user_id: str) -> list:
+    cvs = []
+    async for cv in cv_collection.find({"user_id": user_id, "is_completed": False}):
+        cvs.append(cv_helper(cv))
+    return cvs
+
+
+
+async def get_cv_process_by_user(user_id: str) -> dict:
+    total_complete = await cv_collection.count_documents({"user_id": user_id, "is_completed": True})
+    total_in_progress = await cv_collection.count_documents({"user_id": user_id, "is_completed": False})
+
+    return {
+        "completed_cvs": total_complete,
+        "in_progress_cvs": total_in_progress
+    }
 
 # async def extract_cv_from_pdf(file: UploadFile, user_id: str) -> dict:
 #     # Vérifier extension
