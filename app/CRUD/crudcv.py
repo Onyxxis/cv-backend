@@ -151,7 +151,7 @@ async def get_last_cv_by_user(user_id: str) -> dict:
         sort=[("created_at", -1)]
     )
     if not cv:
-        raise HTTPException(status_code=404, detail="No CV found for this user")
+        return {"title": "Aucun CV", "completion_percentage": 0, "created_at": None}
     return cv_helper(cv)
 
 
