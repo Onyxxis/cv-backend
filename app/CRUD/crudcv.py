@@ -163,6 +163,7 @@ async def get_completed_cvs_by_user(user_id: str) -> list:
     return cvs
 
 
+ 
 async def get_in_progress_cvs_by_user(user_id: str) -> list:
     cvs = []
     async for cv in cv_collection.find({"user_id": user_id, "is_completed": False}):
@@ -170,7 +171,7 @@ async def get_in_progress_cvs_by_user(user_id: str) -> list:
     return cvs
 
 
-
+# pour avoir le nombre total  de cv complet et non complet 
 async def get_cv_process_by_user(user_id: str) -> dict:
     total_complete = await cv_collection.count_documents({"user_id": user_id, "is_completed": True})
     total_in_progress = await cv_collection.count_documents({"user_id": user_id, "is_completed": False})

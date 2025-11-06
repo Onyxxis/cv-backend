@@ -80,12 +80,13 @@ async def get_cvs_by_user_route(user_id: str):
 
 
 # obtenir le dernier cv d'un utilisateur 
-@router.get("/users/{user_id}/cv/last", response_model=dict)
+@router.get("/users/{user_id}/last", response_model=dict,summary="obtenir le dernier cv d'un utilisateur ")
 async def get_last_cv(user_id: str):
     return await get_last_cv_by_user(user_id)
 
 
-@router.get("/user/{user_id}/completed")
+# obtenir la liste des cv complet 
+@router.get("/user/{user_id}/completed",summary="obtenir la liste des cv complet")
 async def get_completed_cvs(user_id: str):
     return {
         "status": "success",
@@ -93,7 +94,7 @@ async def get_completed_cvs(user_id: str):
     }
 
 
-@router.get("/user/{user_id}/in-progress")
+@router.get("/user/{user_id}/in-progress",summary="obtenir la liste des cv non  complet")
 async def get_in_progress_cvs(user_id: str):
     return {
         "status": "success",
@@ -102,11 +103,13 @@ async def get_in_progress_cvs(user_id: str):
 
 
 
-@router.get("/cv/in-progress")
+@router.get("/in-progress/{user_id}",summary="pour avoir le nombre total  de cv complet et non complet ")
 async def get_cv_stats(user_id: str):
     if not user_id:
         raise HTTPException(status_code=400, detail="User ID is required")
     return await get_cv_process_by_user(user_id)
+
+
 
 # Extraire les informations d'un CV à partir d'un fichier PDF
 # @router.post("/upload-cv", summary="Extraire les informations d'un CV à partir d'un")
