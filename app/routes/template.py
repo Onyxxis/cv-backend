@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.CRUD.crudtemplate import (Create_template, Get_all_templates, Get_template_by_id, Update_template, Delete_template, Get_template_by_user,Get_template_by_ispremium)
 from app.models.template import Template
+from fastapi.responses import HTMLResponse
+
 
 router = APIRouter(
     prefix="/templates",
@@ -57,3 +59,18 @@ async def delete_template(template_id: str):
     return result
 
 
+
+
+@router.get("/{template_id}/file", response_class=HTMLResponse)
+async def get_template_file(template_id: str):
+    template = await get_template_by_id(template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template non trouvé")
+    
+    try:
+        with open(template["file_link"], "r", encoding="utf-8") as f:
+            html_content = f.read()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Fichier HTML introuvable")
+    
+    return HTMLResponse(content=html_content)

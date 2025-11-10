@@ -19,6 +19,7 @@ async def create_cv_route(cv: CV):
 
 
 
+
 # Obtenir tous les CVs
 @router.get("/", summary="Obtenir tous les CVs")
 async def get_all_cvs_route():

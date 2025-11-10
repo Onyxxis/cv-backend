@@ -5,6 +5,8 @@ from fastapi import HTTPException,UploadFile
 from datetime import datetime ,date
 import io
 import re
+from fastapi.encoders import jsonable_encoder
+
 # from pdfplumber import PDF
 
 
@@ -56,16 +58,34 @@ def calculate_completion(cv_data):
 
 
 # Create CV
-async def create_cv(cv_data: dict) -> dict:
-    from datetime import datetime
+# async def create_cv(cv_data: dict) -> dict:
+#     from datetime import datetime
 
+#     cv_data["created_at"] = datetime.utcnow()
+#     cv_data["updated_at"] = datetime.utcnow()
+#     # ✅ Calcul du pourcentage de complétion lors de la création
+#     completion = calculate_completion(cv_data)
+#     cv_data["completion_percentage"] = completion
+#     cv_data["is_completed"] = (completion == 100)
+#     result = await cv_collection.insert_one(cv_data)
+#     new_cv = await cv_collection.find_one({"_id": result.inserted_id})
+
+#     return cv_helper(new_cv)
+async def create_cv(cv_data: dict) -> dict:
+    # Ajout des dates de création / modification
     cv_data["created_at"] = datetime.utcnow()
     cv_data["updated_at"] = datetime.utcnow()
-    # ✅ Calcul du pourcentage de complétion lors de la création
+
+    # Calcul du pourcentage de complétion
     completion = calculate_completion(cv_data)
     cv_data["completion_percentage"] = completion
     cv_data["is_completed"] = (completion == 100)
-    result = await cv_collection.insert_one(cv_data)
+
+    # ✅ Transformation en format encodable JSON (dates → ISO string)
+    cv_data_encodable = jsonable_encoder(cv_data)
+
+    # Insertion dans MongoDB
+    result = await cv_collection.insert_one(cv_data_encodable)
     new_cv = await cv_collection.find_one({"_id": result.inserted_id})
 
     return cv_helper(new_cv)
