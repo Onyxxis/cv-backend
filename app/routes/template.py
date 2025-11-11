@@ -61,6 +61,16 @@ async def delete_template(template_id: str):
 
 
 
+
+
+
+
+
+
+
+
+
+
 @router.get("/{template_id}/file", response_class=HTMLResponse)
 async def get_template_file(template_id: str):
     template = await get_template_by_id(template_id)
@@ -74,3 +84,7 @@ async def get_template_file(template_id: str):
         raise HTTPException(status_code=404, detail="Fichier HTML introuvable")
     
     return HTMLResponse(content=html_content)
+
+
+
+

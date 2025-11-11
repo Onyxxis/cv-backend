@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, UploadFile
 from typing import List, Optional
-from app.CRUD.crudcv import create_cv, get_all_cvs, get_completed_cvs_by_user, get_cv_by_id, get_cv_process_by_user, get_in_progress_cvs_by_user, update_cv, delete_cv, get_cvs_by_user,get_last_cv_by_user
+from app.CRUD.crudcv import create_cv, get_all_cvs, get_completed_cvs_by_user, get_cv_by_id, get_cv_process_by_user, get_in_progress_cvs_by_user, update_cv, delete_cv, get_cvs_by_user,get_last_cv_by_user, get_recent_cvs_crud
 from app.models.cv import CV
 
 router = APIRouter(
@@ -29,6 +29,57 @@ async def get_all_cvs_route():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
+
+@router.get("/count", summary="Obtenir le nombre total de CVs")
+async def get_total_cvs():
+    try:
+        cvs = await get_all_cvs()
+        total_cvs = len(cvs)
+        return {"total_cvs": total_cvs}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+
+
+# --- derniers CVs générés ---
+@router.get("/recent", summary="Obtenir les 4 derniers CVs générés", response_model=List[CV])
+async def get_recent_cvs(limit: int = 4):
+    try:
+        recent_cvs = await get_recent_cvs_crud(limit)
+        return recent_cvs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+    
+
+# Obtenir le nombre de CVs par tranche de complétion
+@router.get("/stats/completion_tranches", summary="Obtenir le nombre de CVs par tranche de complétion")
+async def get_completion_tranches():
+    try:
+        cvs = await get_all_cvs()   
+        tranches = {
+            "0-25": 0,
+            "26-50": 0,
+            "51-75": 0,
+            "76-100": 0
+        }
+
+        for cv in cvs:
+            percent = cv.get("completion_percentage", 0)
+            if percent <= 25:
+                tranches["0-25"] += 1
+            elif percent <= 50:
+                tranches["26-50"] += 1
+            elif percent <= 75:
+                tranches["51-75"] += 1
+            else:
+                tranches["76-100"] += 1
+
+        return tranches
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
 
 
 # Obtenir un CV par son ID
@@ -111,6 +162,9 @@ async def get_cv_stats(user_id: str):
     return await get_cv_process_by_user(user_id)
 
 
+
+
+    
 
 # Extraire les informations d'un CV à partir d'un fichier PDF
 # @router.post("/upload-cv", summary="Extraire les informations d'un CV à partir d'un")

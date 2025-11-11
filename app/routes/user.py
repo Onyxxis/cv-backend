@@ -57,6 +57,36 @@ async def get_users_by_role_and_offer(
         raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
 
 
+# --- Nombre total d'utilisateurs ---
+@router.get("/count", summary="Obtenir le nombre total d'utilisateurs")
+async def get_total_users():
+    try:
+        utilisateurs = await Get_all_utilisateurs()
+        total_users = len(utilisateurs)
+        return {"total_utilisateurs": total_users}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+
+
+
+# Obtenir le nombre d'utilisateurs par rôle pour un pie chart
+@router.get("/stats/roles", summary="Statistiques des utilisateurs par rôle")
+async def get_users_count_by_role():
+     
+    try:
+        users_admin = await Get_utilisateurs_by_role(Role.ADMIN.value)
+        users_user = await Get_utilisateurs_by_role(Role.USER.value)
+
+        data = [
+            {"role": "Admin", "count": len(users_admin)},
+            {"role": "User", "count": len(users_user)}
+        ]
+        return {"data": data}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+
+
 # Un utilisateur par ID
 @router.get("/{user_id}",summary="Obtenir un utilisateur par ID")
 async def get_user_by_id(user_id: str):
@@ -93,4 +123,6 @@ async def delete_user(user_id: str):
     if not deleted:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     return {"message": "Utilisateur supprimé avec succès"}
+
+
 

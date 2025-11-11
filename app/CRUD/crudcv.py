@@ -5,9 +5,10 @@ from fastapi import HTTPException,UploadFile
 from datetime import datetime ,date
 import io
 import re
+from typing import List, Optional
 from fastapi.encoders import jsonable_encoder
 
-# from pdfplumber import PDF
+ 
 
 
 def cv_helper(cv) -> dict:
@@ -201,6 +202,29 @@ async def get_cv_process_by_user(user_id: str) -> dict:
         "in_progress_cvs": total_in_progress
     }
 
+
+
+async def get_recent_cvs_crud(limit: int = 4) -> List[CV]:
+    """
+    Retourne les derniers CVs créés, triés par date de création décroissante.
+    """
+    cvs = await get_all_cvs()
+    if not cvs:
+        return []
+
+    # Trier par date de création
+    sorted_cvs = sorted(cvs, key=lambda x: x.get("created_at", datetime.min), reverse=True)
+    recent_cvs = sorted_cvs[:limit]
+
+    # Formater pour retourner un objet CV complet
+    formatted_cvs = []
+    for cv in recent_cvs:
+        try:
+            formatted_cvs.append(CV(**cv))
+        except Exception as e:
+            print(f"CV invalide ignoré: {cv.get('id', 'unknown')} - {e}")
+
+    return formatted_cvs
 # async def extract_cv_from_pdf(file: UploadFile, user_id: str) -> dict:
 #     # Vérifier extension
 #     if not file.filename.lower().endswith(".pdf"):

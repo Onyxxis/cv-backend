@@ -113,3 +113,5 @@ async def Get_utilisateurs_by_ispremium_and_role(role: str, ispremium: bool):
     async for utilisateur in utilisateur_collection.find(filtre):
         utilisateurs.append(utilisateur_helper(utilisateur))
     return utilisateurs
+
+
