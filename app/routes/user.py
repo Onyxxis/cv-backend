@@ -1,6 +1,6 @@
 from dataclasses import Field
 from fastapi import APIRouter, HTTPException, Path, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 from app.CRUD.cruduser import (
     Change_utilisateur_password,
     Create_utilisateur,
@@ -130,9 +130,9 @@ async def delete_user(user_id: str):
 
 
 class PasswordUpdate(BaseModel):
-    oldPassword: str = Field(..., min_length=6)
-    newPassword: str = Field(..., min_length=6)
-    confirmPassword: str = Field(..., min_length=6)
+    oldPassword: constr(min_length=6)
+    newPassword: constr(min_length=6)
+    confirmPassword: constr(min_length=6)
 
 @router.put("/{user_id}/password", summary="Modifier le mot de passe d'un utilisateur par ID")
 async def update_password_by_id(
