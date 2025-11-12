@@ -1,7 +1,7 @@
 from app.models.User import Utilisateur 
 from app.database import utilisateur_collection
 from bson import ObjectId,errors
-from app.auth.utils import hash_password
+from app.auth.utils import hash_password, verify_password
 from fastapi import HTTPException
 
 def utilisateur_helper(utilisateur) -> dict:
@@ -115,3 +115,33 @@ async def Get_utilisateurs_by_ispremium_and_role(role: str, ispremium: bool):
     return utilisateurs
 
 
+
+async def Change_utilisateur_password(utilisateur_id: str, old_password: str, new_password: str) -> dict:
+    """
+    Vérifie l'ancien mot de passe et met à jour le nouveau mot de passe hashé.
+    """
+    try:
+        obj_id = ObjectId(utilisateur_id)
+    except errors.InvalidId:
+        raise HTTPException(status_code=400, detail="ID utilisateur invalide")
+
+    utilisateur = await utilisateur_collection.find_one({"_id": obj_id})
+    if not utilisateur:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    # Vérifier l'ancien mot de passe
+    if not verify_password(old_password, utilisateur["password"]):
+        raise HTTPException(status_code=400, detail="Ancien mot de passe incorrect")
+
+    # Hash et mise à jour du nouveau mot de passe
+    hashed_password = hash_password(new_password)
+    await utilisateur_collection.update_one({"_id": obj_id}, {"$set": {"password": hashed_password}})
+
+    updated_user = await utilisateur_collection.find_one({"_id": obj_id})
+    return {
+        "id": str(updated_user["_id"]),
+        "username": updated_user["username"],
+        "email": updated_user["email"],
+        "role": updated_user["role"],
+        "ispremium": updated_user.get("ispremium", False)
+    }

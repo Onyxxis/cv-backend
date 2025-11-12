@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Path, Query
 from app.CRUD.cruduser import (
+    Change_utilisateur_password,
     Create_utilisateur,
     Get_all_utilisateurs,
     Get_utilisateur_by_id,
@@ -126,3 +127,25 @@ async def delete_user(user_id: str):
 
 
 
+class PasswordUpdate(BaseModel):
+    oldPassword: str = Field(..., min_length=6)
+    newPassword: str = Field(..., min_length=6)
+    confirmPassword: str = Field(..., min_length=6)
+
+@router.put("/{user_id}/password", summary="Modifier le mot de passe d'un utilisateur par ID")
+async def update_password_by_id(
+    user_id: str = Path(..., description="ID de l'utilisateur"),
+    password_data: PasswordUpdate = ...,
+):
+    # Vérification confirmation
+    if password_data.newPassword != password_data.confirmPassword:
+        raise HTTPException(status_code=400, detail="La confirmation du mot de passe ne correspond pas")
+
+    # Appel CRUD
+    updated_user = await Change_utilisateur_password(
+        utilisateur_id=user_id,
+        old_password=password_data.oldPassword,
+        new_password=password_data.newPassword
+    )
+
+    return {"message": "Mot de passe mis à jour avec succès", "utilisateur": updated_user}
