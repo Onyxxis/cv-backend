@@ -11,22 +11,7 @@ router = APIRouter(
     tags=["authentification"]
 )
 
-# Inscription
-# @router.post("/register", response_model=UserOut)
-# async def register(user: UserCreate):
-#     existing_user = await utilisateur_collection.find_one({"email": user.email})
-#     if existing_user:
-#         raise HTTPException(status_code=400, detail="Email déjà utilisé")
-    
-#     user_dict = user.dict()
-#     user_dict["password"] = hash_password(user_dict["password"])
-#     user_dict["role"] = "user"
-#     user_dict["ispremium"] = False
-
-#     new_user = await Create_utilisateur(user_dict)
-#     return new_user
-
-
+ 
 logger = logging.getLogger("uvicorn.error")
 
 

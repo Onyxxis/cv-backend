@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from app.CRUD.crudtemplate import (Create_template, Get_all_templates, Get_template_by_id, Update_template, Delete_template, Get_template_by_user,Get_template_by_ispremium)
 from app.models.template import Template
 from fastapi.responses import HTMLResponse
+import httpx
 
 
 router = APIRouter(
@@ -73,17 +74,24 @@ async def delete_template(template_id: str):
 
 @router.get("/{template_id}/file", response_class=HTMLResponse)
 async def get_template_file(template_id: str):
-    template = await get_template_by_id(template_id)
+    data = await get_template_by_id(template_id)
+    template = data.get("template")
     if not template:
         raise HTTPException(status_code=404, detail="Template non trouvé")
-    
+
+    file_link = template.get("file_link")
+    if not file_link:
+        raise HTTPException(status_code=404, detail="Le champ file_link est manquant pour ce template")
+
     try:
-        with open(template["file_link"], "r", encoding="utf-8") as f:
-            html_content = f.read()
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Fichier HTML introuvable")
-    
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(file_link)
+            resp.raise_for_status()
+            html_content = resp.text
+    except Exception:
+        raise HTTPException(status_code=404, detail="Impossible de récupérer le fichier HTML depuis Cloudinary")
     return HTMLResponse(content=html_content)
+
 
 
 
