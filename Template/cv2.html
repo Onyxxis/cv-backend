@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CV - {{ personal_info.first_name }} {{ personal_info.last_name }}</title>
+<style>
+:root {
+    --primary: #2563eb;
+    --accent: #0ea5e9;
+    --secondary: #475569;
+    --light: #f8fafc;
+    --light-section: #f1f5f9;
+    --dark: #1e293b;
+    --gray: #64748b;
+    --white: #ffffff;
+    --border-radius: 10px;
+    --shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--light);
+    color: var(--dark);
+    line-height: 1.5;
+    font-size: 16px;
+    padding: 1rem;
+}
+
+.cv-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--white);
+    box-shadow: var(--shadow);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+}
+
+.header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+}
+
+.header .job-title {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.contact-info {
+    margin-top: 0.8rem;
+    font-size: 0.95rem;
+}
+
+.contact-info div {
+    margin-bottom: 0.25rem;
+}
+
+/* Sections */
+.section {
+    margin: 1.5rem;
+    padding: 1rem;
+    background-color: var(--light-section);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+.section h2 {
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    position: relative;
+    padding-bottom: 0.3rem;
+}
+
+.section h2::after {
+    content: "";
+    position: absolute;
+    left:0;
+    bottom:0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--accent);
+    border-radius: 2px;
+}
+
+/* Skills & Languages */
+.skills-container, .languages-container {
+    list-style: none;
+    padding-left: 1rem;
+}
+
+.skills-container li, .languages-container li {
+    margin-bottom: 0.25rem;
+}
+
+/* Timeline items */
+.timeline-item, .project-item, .certification-item {
+    margin-bottom: 1rem;
+}
+
+.item-title {
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.item-subtitle, .item-date {
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+/* Divider */
+.divider {
+    height: 2px;
+    background: var(--accent);
+    margin: 1.5rem 0;
+    border-radius: 1px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cv-wrapper { padding: 0; }
+    .header h1 { font-size: 1.5rem; }
+    .section { margin: 1rem; padding: 0.8rem; }
+}
+</style>
+</head>
+<body>
+<div class="cv-wrapper">
+
+    <!-- Header -->
+    <header class="header">
+        <h1>{{ personal_info.first_name }} {{ personal_info.last_name }}</h1>
+        <p class="job-title">{{ personal_info.job_title }}</p>
+        <div class="contact-info">
+            <div>Email: <a href="mailto:{{ personal_info.email }}" style="color:white">{{ personal_info.email }}</a></div>
+            <div>Téléphone: <a href="tel:{{ personal_info.phone }}" style="color:white">{{ personal_info.phone }}</a></div>
+            <div>Site web: <a href="{{ personal_info.link }}" target="_blank" style="color:white">{{ personal_info.link }}</a></div>
+            <div>Nationalité: {{ personal_info.nationality }}</div>
+        </div>
+    </header>
+
+    <!-- Profile -->
+    <section class="section">
+        <h2>Profil</h2>
+        <p>{{ personal_info.description }}</p>
+    </section>
+
+    <!-- Compétences -->
+    <section class="section">
+        <h2>Compétences</h2>
+        <ul class="skills-container">
+            {{ skills }}
+        </ul>
+    </section>
+
+    <!-- Langues -->
+    <section class="section">
+        <h2>Langues</h2>
+        <ul class="languages-container">
+            {{ languages }}
+        </ul>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Expériences -->
+    <section class="section">
+        <h2>Expériences professionnelles</h2>
+        <div class="timeline-container">
+            {{ experiences }}
+        </div>
+    </section>
+
+    <!-- Formations -->
+    <section class="section">
+        <h2>Formations</h2>
+        <div class="timeline-container">
+            {{ education }}
+        </div>
+    </section>
+
+    <!-- Projets -->
+    <section class="section">
+        <h2>Projets</h2>
+        <div class="projects-container">
+            {{ projects }}
+        </div>
+    </section>
+
+    <!-- Certifications -->
+    <section class="section">
+        <h2>Certifications</h2>
+        <div class="certifications-container">
+            {{ certifications }}
+        </div>
+    </section>
+
+</div>
+</body>
+</html>
