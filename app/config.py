@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
 
+    gemini_api_key: str
     class Config:
         env_file = ".env"  
 
