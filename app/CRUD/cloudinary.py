@@ -28,7 +28,7 @@ def upload_to_cloudinary(file_bytes: bytes, folder="uploads", filename=None):
         if ext in ["html", "pdf", "txt"]:
             resource_type = "raw"
         else:
-            resource_type = "auto"  # pour images, Cloudinary va gérer correctement
+            resource_type = "auto"  
 
         result = cloudinary.uploader.upload(
             file=(filename, file_bytes),
@@ -41,7 +41,14 @@ def upload_to_cloudinary(file_bytes: bytes, folder="uploads", filename=None):
 
         # Créer raw_link pour les fichiers "raw"
         if resource_type == "raw":
-            raw_link = f"https://res.cloudinary.com/{os.getenv('CLOUDINARY_CLOUD_NAME')}/raw/upload/{result['public_id']}.{ext}"
+            # raw_link = f"https://res.cloudinary.com/{os.getenv('CLOUDINARY_CLOUD_NAME')}/raw/upload/{result['public_id']}.{ext}"
+            # Assurer que public_id ne contient pas l'extension
+            public_id = result['public_id']
+            if public_id.endswith(f".{ext}"):
+                raw_link = f"https://res.cloudinary.com/{os.getenv('CLOUDINARY_CLOUD_NAME')}/raw/upload/{public_id}"
+            else:
+                raw_link = f"https://res.cloudinary.com/{os.getenv('CLOUDINARY_CLOUD_NAME')}/raw/upload/{public_id}.{ext}"
+
         else:
             raw_link = result.get("secure_url")
 
