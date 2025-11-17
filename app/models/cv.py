@@ -71,3 +71,12 @@ class CV(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+# pour l'extraction de données
+class ExtractedCVData(BaseModel):
+    personal_info: PersonalInfo
+    experiences: List[Experience] = []
+    education: List[Education] = []
+    skills: List[Skill] = []
+    projects: List[Project] = []
+    languages: List[Language] = []
+    certifications: List[Certification] = []

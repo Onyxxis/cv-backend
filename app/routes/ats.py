@@ -14,6 +14,19 @@ router = APIRouter(
     tags=["ATS Analysis"]
     )
 
+
+# @router.post("/analyze")
+# async def analyze_cv(cv: CV):
+#     try:
+#         cv_dict = cv.dict()
+#         cv_dict.pop("title", None)
+#         cv_dict.pop("template_id", None)
+
+#         result = await asyncio.to_thread(analyze_cv_with_gemini, cv_dict)
+#         return {"status": "success", "analysis": result}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/analyze")
 async def analyze_cv(cv: CV):
     try:
@@ -23,8 +36,10 @@ async def analyze_cv(cv: CV):
 
         result = await asyncio.to_thread(analyze_cv_with_gemini, cv_dict)
         return {"status": "success", "analysis": result}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @router.get("/test-gemini")

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Query, UploadFile
+from fastapi import APIRouter, HTTPException, Query, UploadFile,File
 from typing import List, Optional
-from app.CRUD.crudcv import create_cv, get_all_cvs, get_completed_cvs_by_user, get_cv_by_id, get_cv_process_by_user, get_in_progress_cvs_by_user, update_cv, delete_cv, get_cvs_by_user,get_last_cv_by_user, get_recent_cvs_crud
+
+from app.CRUD.crudcv import create_cv, get_all_cvs, get_completed_cvs_by_user, get_cv_by_id, get_cv_process_by_user, get_in_progress_cvs_by_user, process_cv_import, update_cv, delete_cv, get_cvs_by_user,get_last_cv_by_user, get_recent_cvs_crud
 from app.models.cv import CV
 
 router = APIRouter(
@@ -80,6 +81,24 @@ async def get_completion_tranches():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+
+
+
+# importer un fichier pour avoir les donnée a l'interieur 
+@router.post("/import")
+async def import_cv(file: UploadFile = File(...)):
+    try:
+        parsed_data = await process_cv_import(file)
+
+        return {
+            "status": "success",
+            "data": parsed_data
+        }
+
+    except Exception as e:
+        print("IMPORT ERROR ROUTER:", e)
+        raise HTTPException(status_code=500, detail="Erreur lors de l'import du CV")
+
 
 
 # Obtenir un CV par son ID
