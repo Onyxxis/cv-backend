@@ -6,7 +6,7 @@ from datetime import date, datetime
 class PersonalInfo(BaseModel):
     first_name: str
     last_name: str
-    birthdate: date
+    birthdate: Optional[date] = None
     gender: str
     email: EmailStr
     phone: str
@@ -21,14 +21,14 @@ class Experience(BaseModel):
     position: str
     company: str
     description: Optional[str] = None
-    start_date: date
+    start_date: Optional[date] = None
     end_date: Optional[date] = None
 
 # Education
 class Education(BaseModel):
     degree_name: str
     institution: str
-    start_date: date
+    start_date: Optional[date] = None
     end_date: Optional[date] = None
 
 # Skill
@@ -51,7 +51,7 @@ class Language(BaseModel):
 class Certification(BaseModel):
     title: str
     organization: str
-    date_obtained: date
+    date_obtained: Optional[date] = None
     url: Optional[str] = None
 
 # Main CV model

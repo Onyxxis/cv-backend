@@ -1,3 +1,4 @@
+import json
 from app.database import cv_collection  
 from app.models.cv import CV, ExtractedCVData
 from bson import ObjectId
@@ -10,7 +11,10 @@ from fastapi.encoders import jsonable_encoder
 import mimetypes
 from app.config import settings
 import google.generativeai as genai
+from datetime import datetime, date
 
+
+MODEL_NAME = "models/gemini-2.5-pro"
 
 genai.configure(api_key=settings.gemini_api_key)
 
@@ -218,30 +222,142 @@ async def get_recent_cvs_crud(limit: int = 4) -> List[CV]:
     return formatted_cvs
 
 
+def extract_json(text: str):
+    """
+    Extrait un JSON valide depuis n'importe quel texte généré par Gemini.
+    """
+    import re
+    text = re.sub(r"```json|```", "", text).strip()
+    match = re.search(r"\{[\s\S]*\}", text)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+    try:
+        return json.loads(text.replace("'", '"'))
+    except:
+        return None
+
+
+
+def normalize_cv_data(raw: dict) -> dict:
+    """Convertit le JSON brut de Gemini en format compatible avec ExtractedCVData"""
+
+    # --- Personal Info ---
+    pi = raw.get("personal_info", {})
+    pi["birthdate"] = parse_date(pi.get("birthdate")) or None
+    raw["personal_info"] = pi
+
+    # --- Experiences ---
+    exps = []
+    for exp in raw.get("experiences", []):
+        exps.append({
+            "position": exp.get("position") or "",
+            "company": exp.get("company") or "",
+            "description": exp.get("description") or "",
+            "start_date": parse_date(exp.get("start_date")) or None,
+            "end_date": parse_date(exp.get("end_date")) or None,
+        })
+    raw["experiences"] = exps
+
+    # --- Education ---
+    edus = []
+    for edu in raw.get("education", []):
+        edus.append({
+            "degree_name": edu.get("degree_name") or edu.get("degree") or "",
+            "institution": edu.get("institution") or "",
+            "start_date": parse_date(edu.get("start_date")) or None,
+            "end_date": parse_date(edu.get("end_date")) or None,
+        })
+    raw["education"] = edus
+
+    # --- Skills ---
+    skills_normalized = []
+    for s in raw.get("skills", []):
+        if isinstance(s, str):
+            skills_normalized.append({"name": s})
+        elif isinstance(s, dict):
+            # Si Gemini renvoie {'category': 'Front-end', 'items': ['React', 'Vue']}
+            items = s.get("items", [])
+            for item in items:
+                skills_normalized.append({"name": item})
+            # Si déjà un champ name
+            if "name" in s:
+                skills_normalized.append({"name": s["name"]})
+    raw["skills"] = skills_normalized
+
+    # --- Projects ---
+    projs = []
+    for p in raw.get("projects", []):
+        projs.append({
+            "name": p.get("name") or "",
+            "description": p.get("description") or "",
+            "start_date": parse_date(p.get("start_date")) or None,
+            "end_date": parse_date(p.get("end_date")) or None,
+        })
+    raw["projects"] = projs
+
+    # --- Languages ---
+    langs = []
+    for l in raw.get("languages", []):
+        langs.append({
+            "name": l.get("name") or l.get("language") or "",
+            "level": l.get("level") or "",
+        })
+    raw["languages"] = langs
+
+    # --- Certifications ---
+    certs = []
+    for c in raw.get("certifications", []):
+        certs.append({
+            "title": c.get("title") or "",
+            "organization": c.get("organization") or "",
+            "date_obtained": parse_date(c.get("date_obtained")) or None,
+            "url": c.get("url") or None,
+        })
+    raw["certifications"] = certs
+
+    return raw
+
+
+
+def parse_date(value):
+    """Convertit une chaîne en date ou retourne None si impossible"""
+    if not value:
+        return None
+    if isinstance(value, date):
+        return value
+    try:
+        # Essaie YYYY-MM-DD
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except:
+        try:
+            # Essaie YYYY-MM
+            return datetime.strptime(value, "%Y-%m").date()
+        except:
+            try:
+                # Essaie juste YYYY
+                return datetime.strptime(value, "%Y").date()
+            except:
+                return None
+
 
 async def process_cv_import(file: UploadFile) -> ExtractedCVData:
     try:
+        # Lire le contenu du fichier
         content = await file.read()
-
         if not content:
             raise HTTPException(status_code=400, detail="Fichier vide")
 
-        mime = file.content_type or mimetypes.guess_type(file.filename)[0]
+        # Détecter le mime type
+        mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
 
-        client = genai.Client()
-
-        response = client.responses.parse(
-            model="models/gemini-2.5-pro",
-            input=[
-                {
-                    "mime_type": mime,
-                    "data": content
-                },
-                {
-                    "text": """
-Lis ce CV et extrait toutes les informations dans ce format strict JSON :
-{
-    "personal_info": {
+        # Construire le prompt pour Gemini
+        prompt = f"""
+Lis ce CV fourni (mime_type={mime}) et extrait toutes les informations dans ce format strict JSON :
+{{
+    "personal_info": {{
         "first_name": "",
         "last_name": "",
         "birthdate": null,
@@ -252,32 +368,36 @@ Lis ce CV et extrait toutes les informations dans ce format strict JSON :
         "job_title": "",
         "description": "",
         "link": ""
-    },
-    "experiences": [
-        {
-            "position": "",
-            "company": "",
-            "description": "",
-            "start_date": "",
-            "end_date": ""
-        }
-    ],
+    }},
+    "experiences": [],
     "education": [],
     "skills": [],
     "projects": [],
     "languages": [],
     "certifications": []
-}
+}}
 
 Si une info n’est pas trouvée, laisse une chaîne vide ou null.
 Respecte strictement les noms des clés.
+Voici le contenu du CV encodé en UTF-8 : {content.decode('utf-8', errors='ignore')}
 """
-                }
-            ],
-            output_format=ExtractedCVData
-        )
 
-        return response.parsed
+        # Appel à Gemini
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(prompt)
+
+        # Récupérer le texte généré
+        text_output = getattr(response, "output_text", None) or getattr(response, "text", "")
+
+        # Extraire le JSON strict
+        data = extract_json(text_output)
+        if not data:
+            raise HTTPException(status_code=500, detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}")
+
+        # ✅ Normaliser les données pour Pydantic (dates, skills, languages, etc.)
+        normalized_data = normalize_cv_data(data)
+        # Retourner un objet Pydantic validé
+        return ExtractedCVData(**normalized_data)
 
     except Exception as e:
         print("IMPORT ERROR:", e)
