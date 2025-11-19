@@ -45,7 +45,7 @@ class Project(BaseModel):
 # Language
 class Language(BaseModel):
     name: str
-    level: str  # beginner, intermediate, fluent, advanced
+    level: str  
 
 # Certification
 class Certification(BaseModel):

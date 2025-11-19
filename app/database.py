@@ -5,8 +5,6 @@ from app.config import settings
 
 client = motor.motor_asyncio.AsyncIOMotorClient(
     settings.MONGODB_URI,
-    # tls=True,   
-    # tlsAllowInvalidCertificates=True   
 )
 
 database = client[settings.DB_NAME]

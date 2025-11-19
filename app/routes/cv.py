@@ -184,14 +184,3 @@ async def get_cv_stats(user_id: str):
 
 
     
-
-# Extraire les informations d'un CV à partir d'un fichier PDF
-# @router.post("/upload-cv", summary="Extraire les informations d'un CV à partir d'un")
-# async def upload_cv_route(file: UploadFile):
-#     try:
-#         extracted_cv = await extract_cv_from_pdf(file)
-#         return {"message": "Extraction réussie", "cv": extracted_cv}
-#     except HTTPException as http_exc:
-#         raise http_exc
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))

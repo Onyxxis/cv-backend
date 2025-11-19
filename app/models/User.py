@@ -15,7 +15,6 @@ class Utilisateur(BaseModel):
 
     @model_validator(mode='after')
     def check_ispremium_for_user(self):
-        # ispremium = values.ispremium
         if self.role == Role.ADMIN and self.ispremium:
             raise ValueError("Les admins ne peuvent pas avoir le champ 'ispremium' à True")
         return self
