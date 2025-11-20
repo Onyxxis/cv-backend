@@ -12,6 +12,8 @@ database = client[settings.DB_NAME]
 utilisateur_collection = database.get_collection("utilisateurs")
 template_collection = database.get_collection("templates")
 cv_collection = database.get_collection("cvs")
+ats_analysis_collection = database.get_collection("ats_analysis")
+
 
 
 
