@@ -224,31 +224,44 @@ async def get_recent_cvs_crud(limit: int = 4) -> List[CV]:
     return formatted_cvs
 
 
-def extract_json(text: str):
-    """
-    Extrait un JSON valide depuis n'importe quel texte généré par Gemini.
-    """
-    import re
-    text = re.sub(r"```json|```", "", text).strip()
-    match = re.search(r"\{[\s\S]*\}", text)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except json.JSONDecodeError:
-            pass
+async def extract_text_from_pdf(file_bytes: bytes) -> str:
+    """Extrait un texte clair depuis un PDF avec PyMuPDF."""
     try:
-        return json.loads(text.replace("'", '"'))
-    except:
-        return None
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        text = ""
+        for page in doc:
+            text += page.get_text("text")
+        return text
+    except Exception:
+        return ""
 
+
+def ensure_in_text(value: str, full_text: str):
+    """Supprime toute donnée inventée qui n'apparaît PAS dans le texte."""
+    if not value:
+        return ""
+    return value if value.lower() in full_text.lower() else ""
+
+
+def parse_date(value):
+    """Convertit une chaîne en date ou retourne None si impossible"""
+    if not value:
+        return None
+    if isinstance(value, date):
+        return value
+    for fmt in ("%Y-%m-%d", "%Y-%m", "%Y"):
+        try:
+            return datetime.strptime(value, fmt).date()
+        except:
+            continue
+    return None
 
 
 def normalize_cv_data(raw: dict) -> dict:
     """Convertit le JSON brut de Gemini en format compatible avec ExtractedCVData"""
-
     # --- Personal Info ---
     pi = raw.get("personal_info", {})
-    pi["birthdate"] = parse_date(pi.get("birthdate")) or None
+    pi["birthdate"] = parse_date(pi.get("birthdate"))
     raw["personal_info"] = pi
 
     # --- Experiences ---
@@ -258,8 +271,8 @@ def normalize_cv_data(raw: dict) -> dict:
             "position": exp.get("position") or "",
             "company": exp.get("company") or "",
             "description": exp.get("description") or "",
-            "start_date": parse_date(exp.get("start_date")) or None,
-            "end_date": parse_date(exp.get("end_date")) or None,
+            "start_date": parse_date(exp.get("start_date")),
+            "end_date": parse_date(exp.get("end_date")),
         })
     raw["experiences"] = exps
 
@@ -269,8 +282,8 @@ def normalize_cv_data(raw: dict) -> dict:
         edus.append({
             "degree_name": edu.get("degree_name") or edu.get("degree") or "",
             "institution": edu.get("institution") or "",
-            "start_date": parse_date(edu.get("start_date")) or None,
-            "end_date": parse_date(edu.get("end_date")) or None,
+            "start_date": parse_date(edu.get("start_date")),
+            "end_date": parse_date(edu.get("end_date")),
         })
     raw["education"] = edus
 
@@ -280,11 +293,9 @@ def normalize_cv_data(raw: dict) -> dict:
         if isinstance(s, str):
             skills_normalized.append({"name": s})
         elif isinstance(s, dict):
-            # Si Gemini renvoie {'category': 'Front-end', 'items': ['React', 'Vue']}
             items = s.get("items", [])
             for item in items:
                 skills_normalized.append({"name": item})
-            # Si déjà un champ name
             if "name" in s:
                 skills_normalized.append({"name": s["name"]})
     raw["skills"] = skills_normalized
@@ -295,8 +306,8 @@ def normalize_cv_data(raw: dict) -> dict:
         projs.append({
             "name": p.get("name") or "",
             "description": p.get("description") or "",
-            "start_date": parse_date(p.get("start_date")) or None,
-            "end_date": parse_date(p.get("end_date")) or None,
+            "start_date": parse_date(p.get("start_date")),
+            "end_date": parse_date(p.get("end_date")),
         })
     raw["projects"] = projs
 
@@ -315,7 +326,7 @@ def normalize_cv_data(raw: dict) -> dict:
         certs.append({
             "title": c.get("title") or "",
             "organization": c.get("organization") or "",
-            "date_obtained": parse_date(c.get("date_obtained")) or None,
+            "date_obtained": parse_date(c.get("date_obtained")),
             "url": c.get("url") or None,
         })
     raw["certifications"] = certs
@@ -323,117 +334,28 @@ def normalize_cv_data(raw: dict) -> dict:
     return raw
 
 
-
-def parse_date(value):
-    """Convertit une chaîne en date ou retourne None si impossible"""
-    if not value:
-        return None
-    if isinstance(value, date):
-        return value
-    try:
-        # Essaie YYYY-MM-DD
-        return datetime.strptime(value, "%Y-%m-%d").date()
-    except:
+def extract_json(text: str):
+    """Extrait un JSON valide depuis n'importe quel texte généré par Gemini."""
+    import re
+    text = re.sub(r"```json|```", "", text).strip()
+    match = re.search(r"\{[\s\S]*\}", text)
+    if match:
         try:
-            # Essaie YYYY-MM
-            return datetime.strptime(value, "%Y-%m").date()
-        except:
-            try:
-                # Essaie juste YYYY
-                return datetime.strptime(value, "%Y").date()
-            except:
-                return None
-
-
-# async def process_cv_import(file: UploadFile) -> ExtractedCVData:
-#     try:
-#         # Lire le contenu du fichier
-#         content = await file.read()
-#         if not content:
-#             raise HTTPException(status_code=400, detail="Fichier vide")
-
-#         # Détecter le mime type
-#         mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
-
-#         # Construire le prompt pour Gemini
-#         prompt = f"""
-# Lis ce CV fourni (mime_type={mime}) et extrait toutes les informations dans ce format strict JSON :
-# {{
-#     "personal_info": {{
-#         "first_name": "",
-#         "last_name": "",
-#         "birthdate": null,
-#         "gender": "",
-#         "email": "",
-#         "phone": "",
-#         "nationality": "",
-#         "job_title": "",
-#         "description": "",
-#         "link": ""
-#     }},
-#     "experiences": [],
-#     "education": [],
-#     "skills": [],
-#     "projects": [],
-#     "languages": [],
-#     "certifications": []
-# }}
-
-# Si une info n’est pas trouvée, laisse une chaîne vide ou null.
-# Respecte strictement les noms des clés.
-# Voici le contenu du CV encodé en UTF-8 : {content.decode('utf-8', errors='ignore')}
-# """
-
-#         # Appel à Gemini
-#         model = genai.GenerativeModel(MODEL_NAME)
-#         response = model.generate_content(prompt)
-
-#         # Récupérer le texte généré
-#         text_output = getattr(response, "output_text", None) or getattr(response, "text", "")
-
-#         # Extraire le JSON strict
-#         data = extract_json(text_output)
-#         if not data:
-#             raise HTTPException(status_code=500, detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}")
-
-#         # ✅ Normaliser les données pour Pydantic (dates, skills, languages, etc.)
-#         normalized_data = normalize_cv_data(data)
-#         # Retourner un objet Pydantic validé
-#         return ExtractedCVData(**normalized_data)
-
-#     except Exception as e:
-#         print("IMPORT ERROR:", e)
-#         raise HTTPException(status_code=500, detail="Erreur lors de l'import du CV")
-
-async def extract_text_from_pdf(file_bytes: bytes) -> str:
-    """Extrait un texte clair depuis un PDF avec PyMuPDF."""
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
     try:
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
-        text = ""
-        for page in doc:
-            text += page.get_text("text")
-        return text
-    except Exception:
-        return ""
-
-
-def ensure_in_text(value: str, full_text: str):
-    """Supprime toute donnée inventée qui n'apparaît PAS dans le texte."""
-    if not value:
-        return value
-    if value.lower() not in full_text.lower():
-        return ""   # ou None selon ta logique
-    return value
+        return json.loads(text.replace("'", '"'))
+    except:
+        return None
 
 
 async def process_cv_import(file: UploadFile) -> ExtractedCVData:
     try:
-        # Lire le fichier brut
         content = await file.read()
         if not content:
             raise HTTPException(status_code=400, detail="Fichier vide")
 
-        # Détecter le type mime
         mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
 
         # Extraire le texte réel du CV
@@ -445,7 +367,10 @@ async def process_cv_import(file: UploadFile) -> ExtractedCVData:
         if not cv_text.strip():
             raise HTTPException(status_code=400, detail="Impossible de lire le contenu du CV")
 
-        # 🔒 Prompt anti-hallucination
+        # 🔒 Encode le texte pour éviter les problèmes de f-string ou caractères spéciaux
+        safe_text = json.dumps(cv_text)
+
+        # Construire le prompt
         prompt = f"""
 Tu dois EXTRAIRE STRICTEMENT les informations présentes dans le texte du CV fourni.
 NE RÉINVENTE, NE COMPLÈTE et NE PRÉDIS AUCUNE INFORMATION.
@@ -457,8 +382,8 @@ RÈGLES STRICTES :
 - Le texte fourni est la SEULE source autorisée.
 
 Voici le JSON STRICT à remplir :
-{
-    "personal_info": {
+{{
+    "personal_info": {{
         "first_name": "",
         "last_name": "",
         "birthdate": null,
@@ -469,39 +394,29 @@ Voici le JSON STRICT à remplir :
         "job_title": "",
         "description": "",
         "link": ""
-    },
+    }},
     "experiences": [],
     "education": [],
     "skills": [],
     "projects": [],
     "languages": [],
     "certifications": []
-}
+}}
 
 Voici le texte du CV :
 ---
-{cv_text}
+{safe_text}
 ---
 """
 
-        # Appel à Gemini en mode extraction (température zéro)
         model = genai.GenerativeModel(
             MODEL_NAME,
-            generation_config={
-                "temperature": 0,
-                "top_p": 0,
-                "top_k": 1
-            }
+            generation_config={"temperature": 0, "top_p": 0, "top_k": 1}
         )
         response = model.generate_content(prompt)
 
-        # Récupérer le texte brut généré
-        text_output = (
-            getattr(response, "output_text", None)
-            or getattr(response, "text", "")
-        )
+        text_output = getattr(response, "output_text", None) or getattr(response, "text", "")
 
-        # Extraire le JSON
         data = extract_json(text_output)
         if not data:
             raise HTTPException(
@@ -509,10 +424,9 @@ Voici le texte du CV :
                 detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}"
             )
 
-        # Normaliser (dates, listes…)
         normalized_data = normalize_cv_data(data)
 
-        # 🔒 Anti-hallucination final (ne garde QUE ce qui apparaît dans le CV)
+        # Anti-hallucination final : ne garder que ce qui est dans le CV
         pi = normalized_data.get("personal_info", {})
         pi["first_name"] = ensure_in_text(pi.get("first_name"), cv_text)
         pi["last_name"] = ensure_in_text(pi.get("last_name"), cv_text)
@@ -521,17 +435,328 @@ Voici le texte du CV :
         pi["job_title"] = ensure_in_text(pi.get("job_title"), cv_text)
         normalized_data["personal_info"] = pi
 
-        # Tu peux aussi appliquer ensure_in_text sur experiences, education, etc. si tu veux
-        # Exemple :
         filtered_exps = []
         for exp in normalized_data.get("experiences", []):
             if ensure_in_text(exp.get("position", ""), cv_text):
                 filtered_exps.append(exp)
         normalized_data["experiences"] = filtered_exps
 
-        # On retourne un objet Pydantic propre
         return ExtractedCVData(**normalized_data)
 
     except Exception as e:
         print("IMPORT ERROR:", e)
         raise HTTPException(status_code=500, detail="Erreur lors de l'import du CV")
+
+
+
+# def extract_json(text: str):
+#     """
+#     Extrait un JSON valide depuis n'importe quel texte généré par Gemini.
+#     """
+#     import re
+#     text = re.sub(r"```json|```", "", text).strip()
+#     match = re.search(r"\{[\s\S]*\}", text)
+#     if match:
+#         try:
+#             return json.loads(match.group(0))
+#         except json.JSONDecodeError:
+#             pass
+#     try:
+#         return json.loads(text.replace("'", '"'))
+#     except:
+#         return None
+
+
+
+# def normalize_cv_data(raw: dict) -> dict:
+#     """Convertit le JSON brut de Gemini en format compatible avec ExtractedCVData"""
+
+#     # --- Personal Info ---
+#     pi = raw.get("personal_info", {})
+#     pi["birthdate"] = parse_date(pi.get("birthdate")) or None
+#     raw["personal_info"] = pi
+
+#     # --- Experiences ---
+#     exps = []
+#     for exp in raw.get("experiences", []):
+#         exps.append({
+#             "position": exp.get("position") or "",
+#             "company": exp.get("company") or "",
+#             "description": exp.get("description") or "",
+#             "start_date": parse_date(exp.get("start_date")) or None,
+#             "end_date": parse_date(exp.get("end_date")) or None,
+#         })
+#     raw["experiences"] = exps
+
+#     # --- Education ---
+#     edus = []
+#     for edu in raw.get("education", []):
+#         edus.append({
+#             "degree_name": edu.get("degree_name") or edu.get("degree") or "",
+#             "institution": edu.get("institution") or "",
+#             "start_date": parse_date(edu.get("start_date")) or None,
+#             "end_date": parse_date(edu.get("end_date")) or None,
+#         })
+#     raw["education"] = edus
+
+#     # --- Skills ---
+#     skills_normalized = []
+#     for s in raw.get("skills", []):
+#         if isinstance(s, str):
+#             skills_normalized.append({"name": s})
+#         elif isinstance(s, dict):
+#             # Si Gemini renvoie {'category': 'Front-end', 'items': ['React', 'Vue']}
+#             items = s.get("items", [])
+#             for item in items:
+#                 skills_normalized.append({"name": item})
+#             # Si déjà un champ name
+#             if "name" in s:
+#                 skills_normalized.append({"name": s["name"]})
+#     raw["skills"] = skills_normalized
+
+#     # --- Projects ---
+#     projs = []
+#     for p in raw.get("projects", []):
+#         projs.append({
+#             "name": p.get("name") or "",
+#             "description": p.get("description") or "",
+#             "start_date": parse_date(p.get("start_date")) or None,
+#             "end_date": parse_date(p.get("end_date")) or None,
+#         })
+#     raw["projects"] = projs
+
+#     # --- Languages ---
+#     langs = []
+#     for l in raw.get("languages", []):
+#         langs.append({
+#             "name": l.get("name") or l.get("language") or "",
+#             "level": l.get("level") or "",
+#         })
+#     raw["languages"] = langs
+
+#     # --- Certifications ---
+#     certs = []
+#     for c in raw.get("certifications", []):
+#         certs.append({
+#             "title": c.get("title") or "",
+#             "organization": c.get("organization") or "",
+#             "date_obtained": parse_date(c.get("date_obtained")) or None,
+#             "url": c.get("url") or None,
+#         })
+#     raw["certifications"] = certs
+
+#     return raw
+
+
+
+# def parse_date(value):
+#     """Convertit une chaîne en date ou retourne None si impossible"""
+#     if not value:
+#         return None
+#     if isinstance(value, date):
+#         return value
+#     try:
+#         # Essaie YYYY-MM-DD
+#         return datetime.strptime(value, "%Y-%m-%d").date()
+#     except:
+#         try:
+#             # Essaie YYYY-MM
+#             return datetime.strptime(value, "%Y-%m").date()
+#         except:
+#             try:
+#                 # Essaie juste YYYY
+#                 return datetime.strptime(value, "%Y").date()
+#             except:
+#                 return None
+
+
+# # async def process_cv_import(file: UploadFile) -> ExtractedCVData:
+# #     try:
+# #         # Lire le contenu du fichier
+# #         content = await file.read()
+# #         if not content:
+# #             raise HTTPException(status_code=400, detail="Fichier vide")
+
+# #         # Détecter le mime type
+# #         mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
+
+# #         # Construire le prompt pour Gemini
+# #         prompt = f"""
+# # Lis ce CV fourni (mime_type={mime}) et extrait toutes les informations dans ce format strict JSON :
+# # {{
+# #     "personal_info": {{
+# #         "first_name": "",
+# #         "last_name": "",
+# #         "birthdate": null,
+# #         "gender": "",
+# #         "email": "",
+# #         "phone": "",
+# #         "nationality": "",
+# #         "job_title": "",
+# #         "description": "",
+# #         "link": ""
+# #     }},
+# #     "experiences": [],
+# #     "education": [],
+# #     "skills": [],
+# #     "projects": [],
+# #     "languages": [],
+# #     "certifications": []
+# # }}
+
+# # Si une info n’est pas trouvée, laisse une chaîne vide ou null.
+# # Respecte strictement les noms des clés.
+# # Voici le contenu du CV encodé en UTF-8 : {content.decode('utf-8', errors='ignore')}
+# # """
+
+# #         # Appel à Gemini
+# #         model = genai.GenerativeModel(MODEL_NAME)
+# #         response = model.generate_content(prompt)
+
+# #         # Récupérer le texte généré
+# #         text_output = getattr(response, "output_text", None) or getattr(response, "text", "")
+
+# #         # Extraire le JSON strict
+# #         data = extract_json(text_output)
+# #         if not data:
+# #             raise HTTPException(status_code=500, detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}")
+
+# #         # ✅ Normaliser les données pour Pydantic (dates, skills, languages, etc.)
+# #         normalized_data = normalize_cv_data(data)
+# #         # Retourner un objet Pydantic validé
+# #         return ExtractedCVData(**normalized_data)
+
+# #     except Exception as e:
+# #         print("IMPORT ERROR:", e)
+# #         raise HTTPException(status_code=500, detail="Erreur lors de l'import du CV")
+
+# async def extract_text_from_pdf(file_bytes: bytes) -> str:
+#     """Extrait un texte clair depuis un PDF avec PyMuPDF."""
+#     try:
+#         doc = fitz.open(stream=file_bytes, filetype="pdf")
+#         text = ""
+#         for page in doc:
+#             text += page.get_text("text")
+#         return text
+#     except Exception:
+#         return ""
+
+
+# def ensure_in_text(value: str, full_text: str):
+#     """Supprime toute donnée inventée qui n'apparaît PAS dans le texte."""
+#     if not value:
+#         return value
+#     if value.lower() not in full_text.lower():
+#         return ""   # ou None selon ta logique
+#     return value
+
+
+# async def process_cv_import(file: UploadFile) -> ExtractedCVData:
+#     try:
+#         # Lire le fichier brut
+#         content = await file.read()
+#         if not content:
+#             raise HTTPException(status_code=400, detail="Fichier vide")
+
+#         # Détecter le type mime
+#         mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
+
+#         # Extraire le texte réel du CV
+#         if mime == "application/pdf":
+#             cv_text = await extract_text_from_pdf(content)
+#         else:
+#             cv_text = content.decode("utf-8", errors="ignore")
+
+#         if not cv_text.strip():
+#             raise HTTPException(status_code=400, detail="Impossible de lire le contenu du CV")
+
+#         # 🔒 Prompt anti-hallucination
+#         prompt = f"""
+# Tu dois EXTRAIRE STRICTEMENT les informations présentes dans le texte du CV fourni.
+# NE RÉINVENTE, NE COMPLÈTE et NE PRÉDIS AUCUNE INFORMATION.
+
+# RÈGLES STRICTES :
+# - Si une information n’existe pas dans le texte → mets "" ou null.
+# - N'ajoute JAMAIS d’expériences, de formations, de compétences ou de noms qui ne sont PAS dans le texte.
+# - Ne corrige rien. Tu ne dois utiliser QUE ce qui est écrit dans le CV.
+# - Le texte fourni est la SEULE source autorisée.
+
+# Voici le JSON STRICT à remplir :
+# {
+#     "personal_info": {
+#         "first_name": "",
+#         "last_name": "",
+#         "birthdate": null,
+#         "gender": "",
+#         "email": "",
+#         "phone": "",
+#         "nationality": "",
+#         "job_title": "",
+#         "description": "",
+#         "link": ""
+#     },
+#     "experiences": [],
+#     "education": [],
+#     "skills": [],
+#     "projects": [],
+#     "languages": [],
+#     "certifications": []
+# }
+
+# Voici le texte du CV :
+# ---
+# {cv_text}
+# ---
+# """
+
+#         # Appel à Gemini en mode extraction (température zéro)
+#         model = genai.GenerativeModel(
+#             MODEL_NAME,
+#             generation_config={
+#                 "temperature": 0,
+#                 "top_p": 0,
+#                 "top_k": 1
+#             }
+#         )
+#         response = model.generate_content(prompt)
+
+#         # Récupérer le texte brut généré
+#         text_output = (
+#             getattr(response, "output_text", None)
+#             or getattr(response, "text", "")
+#         )
+
+#         # Extraire le JSON
+#         data = extract_json(text_output)
+#         if not data:
+#             raise HTTPException(
+#                 status_code=500,
+#                 detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}"
+#             )
+
+#         # Normaliser (dates, listes…)
+#         normalized_data = normalize_cv_data(data)
+
+#         # 🔒 Anti-hallucination final (ne garde QUE ce qui apparaît dans le CV)
+#         pi = normalized_data.get("personal_info", {})
+#         pi["first_name"] = ensure_in_text(pi.get("first_name"), cv_text)
+#         pi["last_name"] = ensure_in_text(pi.get("last_name"), cv_text)
+#         pi["email"] = ensure_in_text(pi.get("email"), cv_text)
+#         pi["phone"] = ensure_in_text(pi.get("phone"), cv_text)
+#         pi["job_title"] = ensure_in_text(pi.get("job_title"), cv_text)
+#         normalized_data["personal_info"] = pi
+
+#         # Tu peux aussi appliquer ensure_in_text sur experiences, education, etc. si tu veux
+#         # Exemple :
+#         filtered_exps = []
+#         for exp in normalized_data.get("experiences", []):
+#             if ensure_in_text(exp.get("position", ""), cv_text):
+#                 filtered_exps.append(exp)
+#         normalized_data["experiences"] = filtered_exps
+
+#         # On retourne un objet Pydantic propre
+#         return ExtractedCVData(**normalized_data)
+
+#     except Exception as e:
+#         print("IMPORT ERROR:", e)
+#         raise HTTPException(status_code=500, detail="Erreur lors de l'import du CV")

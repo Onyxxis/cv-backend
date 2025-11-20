@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from bson import ObjectId
 from app.database import ats_analysis_collection
 from app.models.ats_analysis import ATSAnalysis
