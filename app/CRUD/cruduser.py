@@ -3,6 +3,7 @@ from app.database import utilisateur_collection
 from bson import ObjectId,errors
 from app.auth.utils import hash_password, verify_password
 from fastapi import HTTPException
+from app.CRUD.email_service import send_welcome_email
 
 def utilisateur_helper(utilisateur) -> dict:
     return {
@@ -14,15 +15,32 @@ def utilisateur_helper(utilisateur) -> dict:
     }
 
 
+# async def Create_utilisateur(utilisateur_data: dict) -> dict:
+#     if utilisateur_data.get("role") == "admin":
+#         utilisateur_data["ispremium"] = False
+#     if "password" in utilisateur_data:
+#         utilisateur_data["password"] = hash_password(utilisateur_data["password"])
+#     result = await utilisateur_collection.insert_one(utilisateur_data)
+#     new_utilisateur = await utilisateur_collection.find_one({"_id": result.inserted_id})
+#     return utilisateur_helper(new_utilisateur)
 async def Create_utilisateur(utilisateur_data: dict) -> dict:
     if utilisateur_data.get("role") == "admin":
         utilisateur_data["ispremium"] = False
-
     if "password" in utilisateur_data:
         utilisateur_data["password"] = hash_password(utilisateur_data["password"])
     result = await utilisateur_collection.insert_one(utilisateur_data)
     new_utilisateur = await utilisateur_collection.find_one({"_id": result.inserted_id})
-    return utilisateur_helper(new_utilisateur)
+    user = utilisateur_helper(new_utilisateur)
+    try:
+        send_welcome_email(
+            to_email=user["email"],
+            username=user["username"]
+        )
+    except Exception as e:
+        print("Erreur lors de l'envoi de l'email :", e)
+
+    return user
+
 
 
 

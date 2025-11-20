@@ -12,6 +12,8 @@ import mimetypes
 from app.config import settings
 import google.generativeai as genai
 from datetime import datetime, date
+import fitz  
+import mimetypes
 
 
 MODEL_NAME = "models/gemini-2.5-pro"
@@ -343,21 +345,120 @@ def parse_date(value):
                 return None
 
 
+# async def process_cv_import(file: UploadFile) -> ExtractedCVData:
+#     try:
+#         # Lire le contenu du fichier
+#         content = await file.read()
+#         if not content:
+#             raise HTTPException(status_code=400, detail="Fichier vide")
+
+#         # Détecter le mime type
+#         mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
+
+#         # Construire le prompt pour Gemini
+#         prompt = f"""
+# Lis ce CV fourni (mime_type={mime}) et extrait toutes les informations dans ce format strict JSON :
+# {{
+#     "personal_info": {{
+#         "first_name": "",
+#         "last_name": "",
+#         "birthdate": null,
+#         "gender": "",
+#         "email": "",
+#         "phone": "",
+#         "nationality": "",
+#         "job_title": "",
+#         "description": "",
+#         "link": ""
+#     }},
+#     "experiences": [],
+#     "education": [],
+#     "skills": [],
+#     "projects": [],
+#     "languages": [],
+#     "certifications": []
+# }}
+
+# Si une info n’est pas trouvée, laisse une chaîne vide ou null.
+# Respecte strictement les noms des clés.
+# Voici le contenu du CV encodé en UTF-8 : {content.decode('utf-8', errors='ignore')}
+# """
+
+#         # Appel à Gemini
+#         model = genai.GenerativeModel(MODEL_NAME)
+#         response = model.generate_content(prompt)
+
+#         # Récupérer le texte généré
+#         text_output = getattr(response, "output_text", None) or getattr(response, "text", "")
+
+#         # Extraire le JSON strict
+#         data = extract_json(text_output)
+#         if not data:
+#             raise HTTPException(status_code=500, detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}")
+
+#         # ✅ Normaliser les données pour Pydantic (dates, skills, languages, etc.)
+#         normalized_data = normalize_cv_data(data)
+#         # Retourner un objet Pydantic validé
+#         return ExtractedCVData(**normalized_data)
+
+#     except Exception as e:
+#         print("IMPORT ERROR:", e)
+#         raise HTTPException(status_code=500, detail="Erreur lors de l'import du CV")
+
+async def extract_text_from_pdf(file_bytes: bytes) -> str:
+    """Extrait un texte clair depuis un PDF avec PyMuPDF."""
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        text = ""
+        for page in doc:
+            text += page.get_text("text")
+        return text
+    except Exception:
+        return ""
+
+
+def ensure_in_text(value: str, full_text: str):
+    """Supprime toute donnée inventée qui n'apparaît PAS dans le texte."""
+    if not value:
+        return value
+    if value.lower() not in full_text.lower():
+        return ""   # ou None selon ta logique
+    return value
+
+
 async def process_cv_import(file: UploadFile) -> ExtractedCVData:
     try:
-        # Lire le contenu du fichier
+        # Lire le fichier brut
         content = await file.read()
         if not content:
             raise HTTPException(status_code=400, detail="Fichier vide")
 
-        # Détecter le mime type
+        # Détecter le type mime
         mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
 
-        # Construire le prompt pour Gemini
+        # Extraire le texte réel du CV
+        if mime == "application/pdf":
+            cv_text = await extract_text_from_pdf(content)
+        else:
+            cv_text = content.decode("utf-8", errors="ignore")
+
+        if not cv_text.strip():
+            raise HTTPException(status_code=400, detail="Impossible de lire le contenu du CV")
+
+        # 🔒 Prompt anti-hallucination
         prompt = f"""
-Lis ce CV fourni (mime_type={mime}) et extrait toutes les informations dans ce format strict JSON :
-{{
-    "personal_info": {{
+Tu dois EXTRAIRE STRICTEMENT les informations présentes dans le texte du CV fourni.
+NE RÉINVENTE, NE COMPLÈTE et NE PRÉDIS AUCUNE INFORMATION.
+
+RÈGLES STRICTES :
+- Si une information n’existe pas dans le texte → mets "" ou null.
+- N'ajoute JAMAIS d’expériences, de formations, de compétences ou de noms qui ne sont PAS dans le texte.
+- Ne corrige rien. Tu ne dois utiliser QUE ce qui est écrit dans le CV.
+- Le texte fourni est la SEULE source autorisée.
+
+Voici le JSON STRICT à remplir :
+{
+    "personal_info": {
         "first_name": "",
         "last_name": "",
         "birthdate": null,
@@ -368,35 +469,67 @@ Lis ce CV fourni (mime_type={mime}) et extrait toutes les informations dans ce f
         "job_title": "",
         "description": "",
         "link": ""
-    }},
+    },
     "experiences": [],
     "education": [],
     "skills": [],
     "projects": [],
     "languages": [],
     "certifications": []
-}}
+}
 
-Si une info n’est pas trouvée, laisse une chaîne vide ou null.
-Respecte strictement les noms des clés.
-Voici le contenu du CV encodé en UTF-8 : {content.decode('utf-8', errors='ignore')}
+Voici le texte du CV :
+---
+{cv_text}
+---
 """
 
-        # Appel à Gemini
-        model = genai.GenerativeModel(MODEL_NAME)
+        # Appel à Gemini en mode extraction (température zéro)
+        model = genai.GenerativeModel(
+            MODEL_NAME,
+            generation_config={
+                "temperature": 0,
+                "top_p": 0,
+                "top_k": 1
+            }
+        )
         response = model.generate_content(prompt)
 
-        # Récupérer le texte généré
-        text_output = getattr(response, "output_text", None) or getattr(response, "text", "")
+        # Récupérer le texte brut généré
+        text_output = (
+            getattr(response, "output_text", None)
+            or getattr(response, "text", "")
+        )
 
-        # Extraire le JSON strict
+        # Extraire le JSON
         data = extract_json(text_output)
         if not data:
-            raise HTTPException(status_code=500, detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Impossible d'extraire le JSON du CV. Output brut : {text_output}"
+            )
 
-        # ✅ Normaliser les données pour Pydantic (dates, skills, languages, etc.)
+        # Normaliser (dates, listes…)
         normalized_data = normalize_cv_data(data)
-        # Retourner un objet Pydantic validé
+
+        # 🔒 Anti-hallucination final (ne garde QUE ce qui apparaît dans le CV)
+        pi = normalized_data.get("personal_info", {})
+        pi["first_name"] = ensure_in_text(pi.get("first_name"), cv_text)
+        pi["last_name"] = ensure_in_text(pi.get("last_name"), cv_text)
+        pi["email"] = ensure_in_text(pi.get("email"), cv_text)
+        pi["phone"] = ensure_in_text(pi.get("phone"), cv_text)
+        pi["job_title"] = ensure_in_text(pi.get("job_title"), cv_text)
+        normalized_data["personal_info"] = pi
+
+        # Tu peux aussi appliquer ensure_in_text sur experiences, education, etc. si tu veux
+        # Exemple :
+        filtered_exps = []
+        for exp in normalized_data.get("experiences", []):
+            if ensure_in_text(exp.get("position", ""), cv_text):
+                filtered_exps.append(exp)
+        normalized_data["experiences"] = filtered_exps
+
+        # On retourne un objet Pydantic propre
         return ExtractedCVData(**normalized_data)
 
     except Exception as e:

@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
 
+    smtp_host: str
+    smtp_port: int
+    smtp_user: str
+    smtp_password: str
+    email_from: str
+
     gemini_api_key: str
     class Config:
         env_file = ".env"  
