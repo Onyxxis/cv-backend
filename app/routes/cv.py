@@ -185,7 +185,3 @@ async def get_cv_stats(user_id: str):
         raise HTTPException(status_code=400, detail="User ID is required")
     return await get_cv_process_by_user(user_id)
 
-
-
-
-    

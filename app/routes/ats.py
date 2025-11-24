@@ -16,14 +16,9 @@ router = APIRouter(
 
 
 @router.post("/analyze")
-async def analyze_cv(cv: CV):
+async def analyze_cv(cv_data: dict):
     try:
-        cv_dict = cv.dict()
-        cv_dict.pop("title", None)
-        cv_dict.pop("template_id", None)
-
-        result = await analyze_cv_with_gemini(cv_dict)
-
+        result = await analyze_cv_with_gemini(cv_data)
         return {"status": "success", "analysis": result}
 
     except Exception as e:
