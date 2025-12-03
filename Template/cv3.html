@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CV - {{ personal_info.first_name }} {{ personal_info.last_name }}</title>
+<style>
+:root {
+    --primary: #2c3e50;
+    --secondary: #34495e;
+    --accent: #3498db;
+    --light-bg: #f8f9fa;
+    --light-section: #ffffff;
+    --dark-text: #2c3e50;
+    --medium-text: #5a6c7d;
+    --light-text: #7f8c8d;
+    --border: #e1e8ed;
+    --border-radius: 4px;
+    --shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+* { 
+    margin:0; 
+    padding:0; 
+    box-sizing:border-box; 
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+    line-height: 1.5;
+    font-size: 14px;
+    padding: 1rem;
+}
+
+.cv-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--light-section);
+    box-shadow: var(--shadow);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+/* Header */
+.header {
+    padding: 2rem 2rem 1.5rem;
+    background-color: var(--primary);
+    color: white;
+    border-bottom: 4px solid var(--accent);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.name-title {
+    flex: 1;
+    min-width: 250px;
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+
+.header .job-title {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.contact-info {
+    text-align: right;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.contact-info div {
+    margin-bottom: 0.2rem;
+}
+
+.contact-info a {
+    color: white;
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+
+/* Sections */
+.section {
+    margin: 1.5rem 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.section:last-of-type {
+    border-bottom: none;
+}
+
+.section h2 {
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.section h2::after {
+    content: "";
+    position: absolute;
+    left:0;
+    bottom:0;
+    width: 40px;
+    height: 2px;
+    background-color: var(--accent);
+}
+
+/* Profile */
+.profile-text {
+    line-height: 1.6;
+    color: var(--medium-text);
+}
+
+/* Skills & Languages */
+.skills-container, .languages-container {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skills-container li, .languages-container li {
+    background-color: var(--light-bg);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+}
+
+/* Timeline items */
+.timeline-item, .project-item, .certification-item {
+    margin-bottom: 1.2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.timeline-item:last-child, .project-item:last-child, .certification-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.item-title {
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 1rem;
+}
+
+.item-subtitle {
+    font-weight: 500;
+    color: var(--medium-text);
+    margin-bottom: 0.3rem;
+}
+
+.item-date {
+    font-size: 0.85rem;
+    color: var(--light-text);
+    white-space: nowrap;
+}
+
+.item-description {
+    color: var(--medium-text);
+    line-height: 1.5;
+}
+
+/* Two-column layout for skills and languages */
+.columns-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cv-wrapper { 
+        padding: 0; 
+        margin: 0;
+    }
+    
+    .header-content {
+        flex-direction: column;
+    }
+    
+    .contact-info {
+        text-align: left;
+        margin-top: 1rem;
+    }
+    
+    .section {
+        margin: 1rem 1.2rem;
+    }
+    
+    .columns-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .item-header {
+        flex-direction: column;
+    }
+    
+    .item-date {
+        margin-top: 0.3rem;
+    }
+}
+
+@media print {
+    body {
+        background: white;
+        padding: 0;
+        font-size: 12px;
+    }
+    
+    .cv-wrapper {
+        box-shadow: none;
+        border: none;
+        max-width: 100%;
+    }
+    
+    .section {
+        break-inside: avoid;
+    }
+}
+</style>
+</head>
+<body>
+<div class="cv-wrapper">
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="name-title">
+                <h1>{{ personal_info.first_name }} {{ personal_info.last_name }}</h1>
+                <p class="job-title">{{ personal_info.job_title }}</p>
+            </div>
+            <div class="contact-info">
+                <div>Email: <a href="mailto:{{ personal_info.email }}">{{ personal_info.email }}</a></div>
+                <div>Téléphone: <a href="tel:{{ personal_info.phone }}">{{ personal_info.phone }}</a></div>
+                <div>Site web: <a href="{{ personal_info.link }}" target="_blank">{{ personal_info.link }}</a></div>
+                <div>Nationalité: {{ personal_info.nationality }}</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Profile -->
+    <section class="section">
+        <h2>Profil</h2>
+        <p class="profile-text">{{ personal_info.description }}</p>
+    </section>
+
+    <!-- Two-column layout for skills and languages -->
+    <div class="columns-container">
+        <!-- Compétences -->
+        <section class="section">
+            <h2>Compétences</h2>
+            <ul class="skills-container">
+                {{ skills }}
+            </ul>
+        </section>
+
+        <!-- Langues -->
+        <section class="section">
+            <h2>Langues</h2>
+            <ul class="languages-container">
+                {{ languages }}
+            </ul>
+        </section>
+    </div>
+
+    <!-- Expériences -->
+    <section class="section">
+        <h2>Expériences professionnelles</h2>
+        <div class="timeline-container">
+            {{ experiences }}
+        </div>
+    </section>
+
+    <!-- Formations -->
+    <section class="section">
+        <h2>Formations</h2>
+        <div class="timeline-container">
+            {{ education }}
+        </div>
+    </section>
+
+    <!-- Projets -->
+    <section class="section">
+        <h2>Projets</h2>
+        <div class="projects-container">
+            {{ projects }}
+        </div>
+    </section>
+
+    <!-- Certifications -->
+    <section class="section">
+        <h2>Certifications</h2>
+        <div class="certifications-container">
+            {{ certifications }}
+        </div>
+    </section>
+
+</div>
+</body>
+</html>

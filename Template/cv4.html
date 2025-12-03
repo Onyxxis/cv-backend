@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - {{ personal_info.first_name }} {{ personal_info.last_name }}</title>
+    <style>
+        /* Reset et bases ATS-friendly */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000000;
+            background: #ffffff;
+            padding: 0.5in;
+            max-width: 8.5in;
+            margin: 0 auto;
+        }
+
+        /* Éviter les éléments qui perturbent les ATS */
+        .cv-container {
+            background: white;
+            position: relative;
+        }
+
+        /* Typographie simple et lisible */
+        h1, h2, h3, h4 {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #000000;
+        }
+
+        h1 {
+            font-size: 18pt;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            font-size: 14pt;
+            background-color: #f0f0f0;
+            padding: 4px 8px;
+            margin-top: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #000000;
+        }
+
+        h3 {
+            font-size: 12pt;
+            margin-top: 12px;
+        }
+
+        /* Structure de base */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #cccccc;
+        }
+
+        .contact-info {
+            margin: 8px 0;
+            font-size: 11pt;
+        }
+
+        .contact-info div {
+            margin: 2px 0;
+        }
+
+        .section {
+            margin-bottom: 16px;
+            page-break-inside: avoid;
+        }
+
+        /* Éléments de liste simples */
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        /* Expériences et formations */
+        .experience-item, .education-item {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .item-title {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .item-subtitle {
+            font-style: italic;
+            margin-bottom: 2px;
+        }
+
+        .item-date {
+            font-size: 10pt;
+            white-space: nowrap;
+        }
+
+        .item-description {
+            font-size: 11pt;
+            margin-top: 4px;
+        }
+
+        /* Compétences */
+        .skills-container {
+            display: block;
+        }
+
+        .skill-category {
+            margin-bottom: 8px;
+        }
+
+        .skill-items {
+            margin-left: 15px;
+        }
+
+        /* Langues */
+        .language-item {
+            margin-bottom: 4px;
+        }
+
+        /* Projets */
+        .project-item {
+            margin-bottom: 10px;
+        }
+
+        /* Certifications */
+        .certification-item {
+            margin-bottom: 6px;
+        }
+
+        /* Optimisations pour l'impression */
+        @media print {
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            
+            .section {
+                break-inside: avoid;
+            }
+            
+            .experience-item, .education-item {
+                break-inside: avoid;
+            }
+        }
+
+        /* Éviter les problèmes ATS */
+        .no-ats-issue {
+            /* Classes utilitaires pour éviter les problèmes courants */
+        }
+
+        /* Pas de colonnes complexes */
+        .simple-layout {
+            /* Layout simple à une colonne */
+        }
+    </style>
+</head>
+<body>
+    <div class="cv-container simple-layout">
+        <!-- En-tête simple -->
+        <header class="header">
+            <h1>{{ personal_info.first_name }} {{ personal_info.last_name }}</h1>
+            <div class="contact-info">
+                <div>{{ personal_info.job_title }}</div>
+                <div>Téléphone: {{ personal_info.phone }}</div>
+                <div>Email: {{ personal_info.email }}</div>
+                <div>Site: {{ personal_info.link }}</div>
+                <div>Nationalité: {{ personal_info.nationality }}</div>
+            </div>
+        </header>
+
+        <!-- Profil -->
+        <section class="section">
+            <h2>PROFIL PROFESSIONNEL</h2>
+            <p>{{ personal_info.description }}</p>
+        </section>
+
+        <!-- Compétences -->
+        <section class="section">
+            <h2>COMPÉTENCES</h2>
+            <div class="skills-container">
+                {{ skills }}
+            </div>
+        </section>
+
+        <!-- Expériences professionnelles -->
+        <section class="section">
+            <h2>EXPÉRIENCE PROFESSIONNELLE</h2>
+            <div class="timeline-container">
+                {{ experiences }}
+            </div>
+        </section>
+
+        <!-- Formations -->
+        <section class="section">
+            <h2>FORMATION</h2>
+            <div class="timeline-container">
+                {{ education }}
+            </div>
+        </section>
+
+        <!-- Langues -->
+        <section class="section">
+            <h2>LANGUES</h2>
+            <div class="languages-container">
+                {{ languages }}
+            </div>
+        </section>
+
+        <!-- Projets -->
+        <section class="section">
+            <h2>PROJETS</h2>
+            <div class="projects-container">
+                {{ projects }}
+            </div>
+        </section>
+
+        <!-- Certifications -->
+        <section class="section">
+            <h2>CERTIFICATIONS</h2>
+            <div class="certifications-container">
+                {{ certifications }}
+            </div>
+        </section>
+    </div>
+</body>
+</html>

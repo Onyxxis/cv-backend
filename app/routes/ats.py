@@ -4,7 +4,13 @@ from app.models.cv import CV
 from app.CRUD.gemini_analyzer import analyze_cv_with_gemini
 from app.config import settings
 import google.generativeai as genai
-
+from app.CRUD.ats_analysis_crud import (
+    get_average_score,
+    save_ats_analysis,
+    get_analysis_by_cv,
+    update_ats_analysis,
+    get_all_analyses
+)
 
 genai.configure(api_key=settings.gemini_api_key)
 
@@ -23,3 +29,17 @@ async def analyze_cv(cv_data: dict):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/average-score")
+async def average_score():
+    try:
+        avg = await get_average_score()
+        return {
+            "status": "success",
+            "average_score": round(avg, 2)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from app.database import test_connection
 import asyncio
-from app.routes import user,template,cv,auth,upload,ats,email
+from app.routes import user,template,cv,auth,upload,ats,email,reformulate
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -37,6 +37,7 @@ app.include_router(ats.router)
 # /upload vers cloudinary des fichier de template et image
 app.include_router(upload.router)
 app.include_router(email.router)
+app.include_router(reformulate.router)
 
 
 
