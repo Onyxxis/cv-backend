@@ -26,7 +26,7 @@ async def login(user: UserLogin):
                 raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
         except Exception as e:
             logger.error(f"Erreur de vérification mot de passe pour {user.email}: {e}")
-            raise HTTPException(status_code=500, detail="Erreur interne lors de la vérification du mot de passe")
+            raise HTTPException(status_code=500, detail="Mot de passe incorrect")
         token_data = {
             "user_id": str(db_user["_id"]),
             "username": db_user.get("username", ""),
