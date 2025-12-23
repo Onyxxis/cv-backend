@@ -1,6 +1,6 @@
 from pydantic import BaseModel,EmailStr,Field,model_validator
 from enum import Enum
- 
+
 
 class Role(str, Enum):
     ADMIN = "admin"

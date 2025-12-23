@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CV - {{ personal_info.first_name }} {{ personal_info.last_name }}</title>
+<style>
+/* 
+ * CV PROFESSIONNEL - STYLE CLASSIQUE MODERNE
+ * Design équilibré avec une structure claire
+ */
+
+:root {
+    --primary: #1e3a8a;
+    --secondary: #1e40af;
+    --accent: #3b82f6;
+    --accent-light: #60a5fa;
+    --light-bg: #f8fafc;
+    --border: #e2e8f0;
+    --border-dark: #cbd5e1;
+    --text: #334155;
+    --text-light: #64748b;
+    --white: #ffffff;
+    --header-bg: #1e293b;
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--white);
+    padding: 40px 30px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.cv-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--white);
+    border: 1px solid var(--border);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* ============ EN-TÊTE TRADITIONNEL ============ */
+.header {
+    background: var(--header-bg);
+    color: var(--white);
+    padding: 40px 50px;
+    position: relative;
+    border-bottom: 4px solid var(--accent);
+}
+
+.header-content {
+    text-align: left;
+}
+
+.header h1 {
+    font-size: 32pt;
+    font-weight: 700;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+    color: var(--white);
+}
+
+.header .job-title {
+    font-size: 16pt;
+    font-weight: 400;
+    color: var(--accent-light);
+    margin-bottom: 25px;
+    font-style: italic;
+}
+
+.contact-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5pt;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.contact-item a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.contact-item a:hover {
+    color: var(--accent-light);
+    text-decoration: underline;
+}
+
+.contact-label {
+    font-weight: 600;
+    color: var(--white);
+    min-width: 70px;
+}
+
+/* ============ CONTENU PRINCIPAL ============ */
+.main-content {
+    padding: 40px 50px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 35px;
+}
+
+/* ============ SECTIONS AVEC BORDURES ============ */
+.section {
+    page-break-inside: avoid;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-dark);
+    position: relative;
+}
+
+.section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 80px;
+    height: 2px;
+    background: var(--accent);
+}
+
+.section h2 {
+    font-size: 16pt;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* ============ PROFIL ============ */
+.profile-text {
+    font-size: 11pt;
+    line-height: 1.6;
+    color: var(--text);
+    text-align: justify;
+    padding-left: 10px;
+    border-left: 3px solid var(--accent);
+    padding-left: 15px;
+}
+
+/* ============ COMPÉTENCES ============ */
+.skills-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.skill-item {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 10.5pt;
+    color: var(--text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.skill-name {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.skill-level {
+    font-size: 9pt;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* ============ LANGUES ============ */
+.languages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.language-item {
+    padding: 10px 15px;
+    background: var(--light-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.language-name {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 3px;
+    display: block;
+}
+
+.language-level {
+    font-size: 9.5pt;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.language-level::before {
+    content: '•';
+    color: var(--accent);
+}
+
+/* ============ EXPÉRIENCES & FORMATIONS ============ */
+.timeline-item {
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.item-left {
+    flex: 1;
+    min-width: 250px;
+}
+
+.item-title {
+    font-size: 12.5pt;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.item-subtitle {
+    font-size: 11pt;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.item-date {
+    font-size: 10pt;
+    color: var(--white);
+    background: var(--secondary);
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.item-description {
+    font-size: 10.5pt;
+    line-height: 1.6;
+    color: var(--text);
+    margin-top: 10px;
+}
+
+.item-description ul {
+    padding-left: 20px;
+    margin-top: 8px;
+}
+
+.item-description li {
+    margin-bottom: 6px;
+    position: relative;
+}
+
+.item-description li::before {
+    content: '–';
+    color: var(--accent);
+    position: absolute;
+    left: -15px;
+}
+
+/* ============ PROJETS ============ */
+.projects-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.project-item {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--light-bg);
+    position: relative;
+}
+
+.project-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent);
+}
+
+.project-item .item-header {
+    margin-bottom: 12px;
+}
+
+/* ============ CERTIFICATIONS ============ */
+.certifications-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.certification-item {
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--white);
+    border-left: 4px solid var(--accent);
+}
+
+.certification-name {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 5px;
+    display: block;
+    font-size: 11pt;
+}
+
+.certification-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9.5pt;
+    color: var(--text-light);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+}
+
+/* ============ LAYOUT DEUX COLONNES ============ */
+@media (min-width: 900px) {
+    .main-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+    
+    .profile-section {
+        grid-column: 1 / -1;
+    }
+    
+    .skills-section,
+    .languages-section,
+    .certifications-section {
+        grid-column: 1;
+    }
+    
+    .experience-section,
+    .education-section,
+    .projects-section {
+        grid-column: 2;
+    }
+}
+
+/* ============ IMPRESSION ============ */
+@media print {
+    body {
+        padding: 0;
+        background: var(--white);
+        font-size: 10.5pt;
+    }
+    
+    .cv-wrapper {
+        max-width: 100%;
+        border: none;
+        box-shadow: none;
+    }
+    
+    .header {
+        background: var(--header-bg) !important;
+        padding: 30px 40px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .header h1 {
+        font-size: 28pt;
+    }
+    
+    .header .job-title {
+        font-size: 14pt;
+    }
+    
+    .main-content {
+        padding: 30px 40px;
+        gap: 30px;
+    }
+    
+    .section {
+        margin-bottom: 20px;
+    }
+    
+    /* Éviter les coupures de page */
+    .timeline-item,
+    .project-item,
+    .certification-item {
+        page-break-inside: avoid;
+    }
+    
+    /* Optimiser pour impression */
+    .contact-item a {
+        color: var(--white) !important;
+        text-decoration: none !important;
+    }
+    
+    @page {
+        margin: 1.5cm;
+    }
+}
+
+/* ============ RESPONSIVE MOBILE ============ */
+@media (max-width: 899px) {
+    body {
+        padding: 20px 15px;
+    }
+    
+    .header {
+        padding: 30px 25px;
+    }
+    
+    .header h1 {
+        font-size: 26pt;
+    }
+    
+    .header .job-title {
+        font-size: 14pt;
+    }
+    
+    .contact-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .main-content {
+        padding: 25px;
+        gap: 25px;
+    }
+    
+    .item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .item-date {
+        align-self: flex-start;
+    }
+    
+    .skills-container,
+    .languages-grid,
+    .certifications-list,
+    .projects-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============ STYLES ATS ============ */
+.ats-important {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.hidden-from-ats {
+    display: none;
+}
+</style>
+</head>
+<body>
+<div class="cv-wrapper">
+
+    <!-- ============ EN-TÊTE ============ -->
+    <header class="header">
+        <div class="header-content">
+            <h1>{{ personal_info.first_name }} {{ personal_info.last_name }}</h1>
+            <div class="job-title">{{ personal_info.job_title }}</div>
+            
+            <div class="contact-info">
+                <div class="contact-item">
+                    <span class="contact-label">Email:</span>
+                    <a href="mailto:{{ personal_info.email }}">{{ personal_info.email }}</a>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">Téléphone:</span>
+                    <a href="tel:{{ personal_info.phone }}">{{ personal_info.phone }}</a>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">Site web:</span>
+                    <a href="{{ personal_info.link }}" target="_blank">{{ personal_info.link }}</a>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">Nationalité:</span>
+                    {{ personal_info.nationality }}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ CONTENU PRINCIPAL ============ -->
+    <div class="main-content">
+
+        <!-- PROFIL -->
+        <section class="section profile-section">
+            <div class="section-header">
+                <h2>Profil professionnel</h2>
+            </div>
+            <div class="profile-text">{{ personal_info.description }}</div>
+        </section>
+
+        <!-- COMPÉTENCES -->
+        <section class="section skills-section">
+            <div class="section-header">
+                <h2>Compétences</h2>
+            </div>
+            <div class="skills-container">
+                {{ skills }}
+            </div>
+        </section>
+
+        <!-- LANGUES -->
+        <section class="section languages-section">
+            <div class="section-header">
+                <h2>Langues</h2>
+            </div>
+            <div class="languages-grid">
+                {{ languages }}
+            </div>
+        </section>
+
+        <!-- CERTIFICATIONS -->
+        <section class="section certifications-section">
+            <div class="section-header">
+                <h2>Certifications</h2>
+            </div>
+            <div class="certifications-list">
+                {{ certifications }}
+            </div>
+        </section>
+
+        <!-- EXPÉRIENCES -->
+        <section class="section experience-section">
+            <div class="section-header">
+                <h2>Expériences professionnelles</h2>
+            </div>
+            <div class="timeline-container">
+                {{ experiences }}
+            </div>
+        </section>
+
+        <!-- FORMATIONS -->
+        <section class="section education-section">
+            <div class="section-header">
+                <h2>Formations</h2>
+            </div>
+            <div class="timeline-container">
+                {{ education }}
+            </div>
+        </section>
+
+        <!-- PROJETS -->
+        <section class="section projects-section">
+            <div class="section-header">
+                <h2>Projets</h2>
+            </div>
+            <div class="projects-container">
+                {{ projects }}
+            </div>
+        </section>
+
+    </div>
+
+</div>
+</body>
+</html>

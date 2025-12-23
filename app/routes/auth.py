@@ -11,7 +11,7 @@ router = APIRouter(
     tags=["authentification"]
 )
 
- 
+
 logger = logging.getLogger("uvicorn.error")
 
 

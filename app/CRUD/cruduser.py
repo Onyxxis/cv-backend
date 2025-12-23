@@ -15,14 +15,8 @@ def utilisateur_helper(utilisateur) -> dict:
     }
 
 
-# async def Create_utilisateur(utilisateur_data: dict) -> dict:
-#     if utilisateur_data.get("role") == "admin":
-#         utilisateur_data["ispremium"] = False
-#     if "password" in utilisateur_data:
-#         utilisateur_data["password"] = hash_password(utilisateur_data["password"])
-#     result = await utilisateur_collection.insert_one(utilisateur_data)
-#     new_utilisateur = await utilisateur_collection.find_one({"_id": result.inserted_id})
-#     return utilisateur_helper(new_utilisateur)
+# CREATE
+
 async def Create_utilisateur(utilisateur_data: dict) -> dict:
     if utilisateur_data.get("role") == "admin":
         utilisateur_data["ispremium"] = False

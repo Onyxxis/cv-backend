@@ -22,7 +22,6 @@ async def upload_file(file: UploadFile = File(...), folder: str = Form("uploads"
         is_raw = mime_type in ["text/html", "application/pdf", "text/plain"]
 
         # Upload en thread pour ne pas bloquer l'event loop
-        # ⚠️ On ne passe plus resource_type, la fonction gère déjà raw par défaut
         upload_result = await asyncio.to_thread(
             upload_to_cloudinary,
             file_bytes,

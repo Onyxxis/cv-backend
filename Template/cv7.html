@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CV - {{ personal_info.first_name }} {{ personal_info.last_name }}</title>
+<style>
+/* Variables CSS */
+:root {
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-light: #666666;
+  --accent-color: #0066cc;
+  --light-accent: #e6f2ff;
+  --border-color: #dddddd;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.5rem;
+}
+
+/* Reset et base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: #ffffff;
+  padding: var(--spacing-xl);
+}
+
+/* Conteneur principal */
+.cv-container {
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  background: #ffffff;
+}
+
+/* En-tête */
+.header {
+  text-align: left;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--accent-color);
+}
+
+.header h1 {
+  font-size: 24pt;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.job-title {
+  font-size: 14pt;
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Informations de contact */
+.contact-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  font-size: 11pt;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.contact-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 80px;
+}
+
+.contact-value {
+  color: var(--text-primary);
+  margin-left: var(--spacing-xs);
+}
+
+/* Sections */
+.section {
+  margin-bottom: var(--spacing-xl);
+  page-break-inside: avoid;
+}
+
+.section-title {
+  font-size: 14pt;
+  font-weight: bold;
+  color: var(--accent-color);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Profil */
+.profile-text {
+  color: var(--text-secondary);
+  text-align: justify;
+  line-height: 1.6;
+}
+
+/* Compétences */
+.skills-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.skill-item {
+  margin-bottom: var(--spacing-md);
+}
+
+.skill-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+  display: block;
+}
+
+.skill-level {
+  display: block;
+  font-size: 10pt;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* Langues */
+.languages-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.language-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+
+.language-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.language-level {
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* Expériences et formations */
+.timeline-item {
+  margin-bottom: var(--spacing-lg);
+  page-break-inside: avoid;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-xs);
+}
+
+.item-title {
+  font-size: 13pt;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-right: var(--spacing-md);
+}
+
+.item-date {
+  font-size: 11pt;
+  color: var(--accent-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.item-subtitle {
+  font-size: 12pt;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+  display: block;
+}
+
+.item-description {
+  color: var(--text-secondary);
+  margin-top: var(--spacing-xs);
+  line-height: 1.5;
+}
+
+/* Projets */
+.project-item {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: var(--light-accent);
+  border-left: 3px solid var(--accent-color);
+}
+
+.project-title {
+  font-size: 13pt;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.project-description {
+  color: var(--text-secondary);
+}
+
+/* Certifications */
+.certification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.certification-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.certification-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 12pt;
+}
+
+.certification-date {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 11pt;
+}
+
+/* Règles ATS importantes */
+.ats-note {
+  display: none; /* Caché à l'écran mais lisible par les ATS */
+  font-size: 1pt;
+  color: transparent;
+}
+
+/* Optimisations pour l'impression */
+@media print {
+  body {
+    font-size: 11pt;
+    padding: 0;
+    margin: 0;
+    background: #ffffff;
+  }
+  
+  .cv-container {
+    max-width: 100%;
+    padding: 0.5in;
+    box-shadow: none;
+    border: none;
+  }
+  
+  .section {
+    page-break-inside: avoid;
+  }
+  
+  .timeline-item {
+    page-break-inside: avoid;
+  }
+  
+  /* Éviter les coupures mal placées */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  ul, ol {
+    page-break-inside: avoid;
+  }
+}
+
+/* Responsive pour petits écrans */
+@media (max-width: 768px) {
+  body {
+    padding: var(--spacing-md);
+    font-size: 11pt;
+  }
+  
+  .cv-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .contact-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .item-date {
+    margin-top: var(--spacing-xs);
+  }
+  
+  .skills-container,
+  .languages-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Classe pour les sauts de page */
+.page-break {
+  page-break-before: always;
+}
+</style>
+</head>
+
+<body>
+<div class="cv-container">
+
+  <!-- Note cachée pour les ATS -->
+  <div class="ats-note">
+    CV professionnel de {{ personal_info.first_name }} {{ personal_info.last_name }} 
+    Poste: {{ personal_info.job_title }}
+    Compétences: {{ skills }}
+    Expérience: {{ experiences }}
+    Formation: {{ education }}
+  </div>
+
+  <!-- En-tête -->
+  <header class="header">
+    <h1>{{ personal_info.first_name }} {{ personal_info.last_name }}</h1>
+    <div class="job-title">{{ personal_info.job_title }}</div>
+    
+    <div class="contact-info">
+      <div class="contact-item">
+        <span class="contact-label">Email:</span>
+        <span class="contact-value">{{ personal_info.email }}</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">Téléphone:</span>
+        <span class="contact-value">{{ personal_info.phone }}</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">Site web:</span>
+        <span class="contact-value">{{ personal_info.link }}</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">Nationalité:</span>
+        <span class="contact-value">{{ personal_info.nationality }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Profil -->
+  <section class="section">
+    <h2 class="section-title">Profil Professionnel</h2>
+    <div class="profile-text">{{ personal_info.description }}</div>
+  </section>
+
+  <!-- Compétences -->
+  <section class="section">
+    <h2 class="section-title">Compétences Techniques</h2>
+    <div class="skills-container">
+      {{ skills }}
+    </div>
+  </section>
+
+  <!-- Langues -->
+  <section class="section">
+    <h2 class="section-title">Langues</h2>
+    <div class="languages-list">
+      {{ languages }}
+    </div>
+  </section>
+
+  <!-- Expériences professionnelles -->
+  <section class="section">
+    <h2 class="section-title">Expériences Professionnelles</h2>
+    {{ experiences }}
+  </section>
+
+  <!-- Formations -->
+  <section class="section">
+    <h2 class="section-title">Formations</h2>
+    {{ education }}
+  </section>
+
+  <!-- Projets -->
+  <section class="section">
+    <h2 class="section-title">Projets</h2>
+    {{ projects }}
+  </section>
+
+  <!-- Certifications -->
+  <section class="section">
+    <h2 class="section-title">Certifications</h2>
+    {{ certifications }}
+  </section>
+
+</div>
+
+<!-- Script pour optimisation ATS -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Assurer la compatibilité avec les ATS
+  
+  // 1. Éviter les caractères spéciaux dans les titres
+  const sectionTitles = document.querySelectorAll('.section-title');
+  sectionTitles.forEach(title => {
+    title.textContent = title.textContent.replace(/[^\w\s\-]/g, '');
+  });
+  
+  // 2. Normaliser les dates pour les ATS
+  const dateElements = document.querySelectorAll('.item-date, .certification-date');
+  dateElements.forEach(element => {
+    const text = element.textContent;
+    // Format recommandé: Mois Année (ex: Janvier 2023)
+    if (text.match(/\d{4}/)) {
+      element.setAttribute('data-ats-date', text);
+    }
+  });
+  
+  // 3. Ajouter des attributs pour les compétences
+  const skillItems = document.querySelectorAll('.skill-name');
+  skillItems.forEach(skill => {
+    const skillText = skill.textContent.toLowerCase().trim();
+    skill.setAttribute('data-ats-skill', skillText);
+  });
+});
+</script>
+</body>
+</html>
